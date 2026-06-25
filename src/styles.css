@@ -3890,3 +3890,19 @@ body {
   display: none;
   content: none;
 }
+
+/* Keep issue dates readable in the delayed-issue cards. */
+.long-running-card {
+  grid-template-columns: 52px minmax(0, 1fr) 86px;
+}
+
+.long-running-card p {
+  min-width: 82px;
+}
+
+.long-running-card time {
+  display: inline-block;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
