@@ -5247,3 +5247,343 @@ body {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* Issue status summary: replace the clipped gauge with a compact segmented component. */
+.summary-strip.issue-dashboard .dashboard-card--status {
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 0.66fr);
+  align-items: start;
+  gap: 12px 18px;
+}
+
+.phase-distribution {
+  display: grid;
+  align-self: stretch;
+  gap: 9px;
+  min-width: 150px;
+  border: 1px solid rgba(217, 228, 240, 0.86);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(247, 251, 255, 0.88)),
+    radial-gradient(circle at 15% 0%, rgba(92, 161, 235, 0.08), transparent 46%);
+  padding: 10px 11px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.phase-distribution__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  color: #566982;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.phase-distribution__header b {
+  color: #172033;
+  font-size: 13px;
+  font-weight: 950;
+  white-space: nowrap;
+}
+
+.phase-segment-bar {
+  display: flex;
+  gap: 4px;
+  height: 14px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf3f9;
+  padding: 2px;
+}
+
+.phase-segment {
+  min-width: 0;
+  border-radius: 999px;
+  opacity: 0.98;
+}
+
+.phase-segment[style*="flex-grow: 0"] {
+  display: none;
+}
+
+.phase-segment.phase-received {
+  background: linear-gradient(90deg, #ffa45d, #f47b32);
+}
+
+.phase-segment.phase-in_progress {
+  background: linear-gradient(90deg, #72a7ff, #276fe6);
+}
+
+.phase-segment.phase-closed {
+  background: linear-gradient(90deg, #5ad39c, #229867);
+}
+
+.summary-strip.issue-dashboard .phase-gauge {
+  display: none;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button {
+  justify-content: center;
+  min-height: 30px;
+  border-color: rgba(207, 220, 242, 0.8);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: none;
+  padding: 6px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button.is-active {
+  background: #fff;
+  box-shadow:
+    inset 0 0 0 1px rgba(207, 220, 242, 0.58),
+    0 7px 16px rgba(43, 69, 99, 0.06);
+}
+
+@media (max-width: 1180px) {
+  .summary-strip.issue-dashboard .dashboard-card--status {
+    grid-template-columns: minmax(0, 1fr) minmax(132px, 0.56fr);
+    gap: 10px 12px;
+  }
+
+  .phase-distribution {
+    min-width: 132px;
+    padding: 9px 10px;
+  }
+
+  .phase-segment-bar {
+    height: 12px;
+  }
+}
+
+@media (max-width: 560px) {
+  .summary-strip.issue-dashboard .dashboard-card--status {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 11px;
+  }
+
+  .phase-distribution {
+    min-width: 0;
+  }
+}
+
+/* Issue status summary refinement: make the phase filters carry the distribution. */
+.summary-strip.issue-dashboard .dashboard-card--status {
+  grid-template-columns: minmax(0, 0.56fr) minmax(260px, 1fr);
+  align-items: center;
+  gap: 12px 18px;
+}
+
+.summary-strip.issue-dashboard .phase-distribution,
+.summary-strip.issue-dashboard .phase-gauge {
+  display: none;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown {
+  grid-column: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 6px;
+  min-height: 54px;
+  overflow: hidden;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(248, 251, 255, 0.9)),
+    radial-gradient(circle at 20% 0%, rgba(92, 161, 235, 0.08), transparent 48%);
+  padding: 11px 10px 15px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  text-align: left;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button::before {
+  display: none;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button::after {
+  position: absolute;
+  right: 9px;
+  bottom: 7px;
+  left: 9px;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, currentColor var(--phase-share), rgba(226, 235, 244, 0.95) var(--phase-share));
+  content: "";
+  opacity: 0.92;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button span {
+  color: #53647a;
+  font-size: 11px;
+  font-weight: 950;
+  line-height: 1.1;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button strong {
+  color: #172033;
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown .phase-received {
+  color: #f07a2c;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown .phase-in_progress {
+  color: #286fe3;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown .phase-closed {
+  color: #249567;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button.is-active {
+  border-color: rgba(99, 153, 226, 0.58);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(240, 248, 255, 0.94)),
+    radial-gradient(circle at 18% 0%, rgba(82, 151, 232, 0.12), transparent 48%);
+  box-shadow:
+    0 0 0 3px rgba(74, 144, 226, 0.1),
+    0 8px 18px rgba(43, 69, 99, 0.06);
+}
+
+@media (max-width: 1180px) {
+  .summary-strip.issue-dashboard .dashboard-card--status {
+    grid-template-columns: minmax(0, 0.52fr) minmax(230px, 1fr);
+    gap: 10px 12px;
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown button {
+    min-height: 48px;
+    padding: 9px 9px 14px;
+  }
+}
+
+@media (max-width: 560px) {
+  .summary-strip.issue-dashboard .dashboard-card--status {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Issue status summary final: one connected proportional bar. */
+.summary-strip.issue-dashboard .dashboard-card--status {
+  grid-template-columns: minmax(0, 0.56fr) minmax(300px, 1fr);
+}
+
+.summary-strip.issue-dashboard .phase-breakdown {
+  display: flex;
+  gap: 0;
+  min-height: 56px;
+  overflow: hidden;
+  border: 1px solid rgba(207, 220, 242, 0.9);
+  border-radius: 16px;
+  background: #eef4fb;
+  padding: 3px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 8px 18px rgba(43, 69, 99, 0.045);
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button {
+  flex: var(--phase-flex) 1 0;
+  min-width: 68px;
+  min-height: 48px;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 10px 11px;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button:first-child {
+  border-radius: 13px 0 0 13px;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button:last-child {
+  border-radius: 0 13px 13px 0;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button + button {
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.88);
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button::after {
+  display: none;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown .phase-received {
+  background:
+    linear-gradient(180deg, rgba(255, 245, 235, 0.98), rgba(255, 235, 214, 0.92)),
+    linear-gradient(90deg, #ffa45d, #f47b32);
+  color: #d7651f;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown .phase-in_progress {
+  background:
+    linear-gradient(180deg, rgba(240, 247, 255, 0.98), rgba(221, 236, 255, 0.94)),
+    linear-gradient(90deg, #72a7ff, #276fe6);
+  color: #2469d9;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown .phase-closed {
+  background:
+    linear-gradient(180deg, rgba(238, 251, 244, 0.98), rgba(216, 244, 230, 0.94)),
+    linear-gradient(90deg, #5ad39c, #229867);
+  color: #21875e;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button span {
+  color: currentColor;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button strong {
+  color: #142033;
+}
+
+.summary-strip.issue-dashboard .phase-breakdown button.is-active {
+  box-shadow:
+    inset 0 0 0 2px rgba(27, 112, 230, 0.48),
+    inset 0 1px 0 rgba(255, 255, 255, 0.75);
+}
+
+@media (max-width: 1180px) {
+  .summary-strip.issue-dashboard .dashboard-card--status {
+    grid-template-columns: minmax(0, 0.5fr) minmax(250px, 1fr);
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown button {
+    min-width: 62px;
+    padding: 9px 9px;
+  }
+}
+
+@media (max-width: 560px) {
+  .summary-strip.issue-dashboard .dashboard-card--status {
+    grid-template-columns: 1fr;
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown {
+    min-height: 54px;
+  }
+}

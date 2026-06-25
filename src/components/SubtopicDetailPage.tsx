@@ -19,6 +19,8 @@ type SubtopicDetailPageProps = {
 
 type DashboardFilter = 'all' | 'open' | 'recent' | IssuePhase;
 
+const PHASE_ORDER: IssuePhase[] = ['received', 'in_progress', 'closed'];
+
 export function SubtopicDetailPage({
   data,
   category,
@@ -64,9 +66,6 @@ export function SubtopicDetailPage({
   const selectedEntry = visibleEntries.find((entry) => entry.id === selectedEntryId) ?? visibleEntries[0];
   const selectedIssue = selectedEntry ? visibleIssues.find((issue) => issue.id === selectedEntry.issueGroupId) : undefined;
   const isStackedDetailViewport = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1180px)').matches;
-  const gaugeStyle = {
-    '--gauge-fill': getGaugeGradient(issuePhaseCounts, issueTotal),
-  } as CSSProperties;
 
   function handleSelectEntry(entryId: string) {
     onSelectEntry(entryId);
@@ -110,19 +109,17 @@ export function SubtopicDetailPage({
             <span>이슈 현황</span>
             <strong>총 {issueTotal}건</strong>
           </button>
-          <div className="phase-gauge" style={gaugeStyle} aria-label="접수 진행 종료 점유율">
-            <div className="phase-gauge__arc" />
-            <b>{issueTotal}</b>
-          </div>
-          <div className="phase-breakdown">
-            {(['received', 'in_progress', 'closed'] as IssuePhase[]).map((phase) => (
+          <div className="phase-breakdown" aria-label="접수 진행 종료 점유율">
+            {PHASE_ORDER.map((phase) => (
               <button
                 className={`status-dot-label phase-${phase} ${dashboardFilter === phase ? 'is-active' : ''}`}
                 key={phase}
                 type="button"
                 onClick={() => setDashboardFilter(phase)}
+                style={{ '--phase-flex': issuePhaseCounts[phase] || 0 } as CSSProperties}
               >
-                {PHASE_LABELS[phase]} {issuePhaseCounts[phase]}건
+                <span>{PHASE_LABELS[phase]}</span>
+                <strong>{issuePhaseCounts[phase]}건</strong>
               </button>
             ))}
           </div>
@@ -179,14 +176,6 @@ function getDateOffset(date: string, offsetDays: number) {
   const parsed = new Date(`${date}T00:00:00+09:00`);
   parsed.setDate(parsed.getDate() + offsetDays);
   return parsed.toISOString().slice(0, 10);
-}
-
-function getGaugeGradient(counts: Record<IssuePhase, number>, total: number) {
-  if (!total) return 'conic-gradient(from 270deg at 50% 100%, #e7edf6 0deg 180deg, transparent 180deg 360deg)';
-
-  const received = (counts.received / total) * 180;
-  const progress = received + (counts.in_progress / total) * 180;
-  return `conic-gradient(from 270deg at 50% 100%, #f0802e 0deg ${received}deg, #1f66e5 ${received}deg ${progress}deg, #27915d ${progress}deg 180deg, transparent 180deg 360deg)`;
 }
 
 function getDashboardFilterLabel(filter: DashboardFilter) {
