@@ -4,7 +4,6 @@ import {
   CirclePlus,
   LockKeyhole,
   Search,
-  ShieldCheck,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AddHistoryPanel } from './components/AddHistoryPanel';
@@ -177,11 +176,6 @@ export function App() {
   return (
     <main className="app-shell">
       <aside className="app-sidebar" aria-label="앱 메뉴">
-        <div className="brand-block">
-          <span className="brand-mark">
-            <ShieldCheck size={18} />
-          </span>
-        </div>
         <nav className="sidebar-nav" aria-label="주요 메뉴">
           <button className={page === 'home' ? 'is-active' : ''} type="button" onClick={() => setPage('home')}>
             <span className="menu-emoji" aria-hidden="true">🏠</span>
@@ -205,7 +199,6 @@ export function App() {
           </button>
         </nav>
         <div className="sidebar-user">
-          <span className="menu-emoji" aria-hidden="true">👤</span>
           <div>
             <strong>관리자</strong>
             <span>연구기획팀</span>
@@ -224,7 +217,7 @@ export function App() {
           </div>
           <label className="global-search">
             <Search size={17} />
-            <input type="search" placeholder="이슈, 강종, 설비 등을 검색하세요" />
+            <input type="search" placeholder="검색" />
             <kbd>⌘ K</kbd>
           </label>
           <button className="icon-button topbar-icon" type="button" aria-label="알림">
@@ -258,6 +251,7 @@ export function App() {
               entries={entries}
               selectedEntryId={selectedEntry?.id}
               onSelectEntry={openEntry}
+              onBackHome={() => setPage('home')}
               onOpenAdd={openAddPanel}
               onOpenEdit={openEditPanel}
             />

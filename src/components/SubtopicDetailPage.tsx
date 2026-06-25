@@ -1,5 +1,4 @@
 import { type CSSProperties, useMemo, useRef, useState } from 'react';
-import { ArrowLeft } from 'lucide-react';
 import type { Category, HistoryEntry, IssueBoardData, IssueGroup, IssuePhase, Subtopic } from '../domain/types';
 import { PHASE_LABELS, STATUS_PHASES } from '../domain/types';
 import { HistoryDetail } from './HistoryDetail';
@@ -13,6 +12,7 @@ type SubtopicDetailPageProps = {
   entries: HistoryEntry[];
   selectedEntryId?: string;
   onSelectEntry: (entryId: string) => void;
+  onBackHome: () => void;
   onOpenAdd: () => void;
   onOpenEdit: (entry: HistoryEntry) => void;
 };
@@ -27,6 +27,7 @@ export function SubtopicDetailPage({
   entries,
   selectedEntryId,
   onSelectEntry,
+  onBackHome,
   onOpenAdd,
   onOpenEdit,
 }: SubtopicDetailPageProps) {
@@ -94,9 +95,8 @@ export function SubtopicDetailPage({
           <h2>{subtopic?.label ?? '이슈'} 이슈</h2>
         </div>
         <div className="page-actions">
-          <button className="text-button" type="button" onClick={handleCloseDetail}>
-            <ArrowLeft size={15} />
-            {subtopic?.label ?? '목록'} 목록으로
+          <button className="text-button" type="button" onClick={onBackHome}>
+            홈으로
           </button>
           <button className="primary-button page-actions__add" type="button" onClick={onOpenAdd}>
             이력 추가

@@ -3428,3 +3428,206 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* Browser comment pass: remove ambiguous chrome and make states clearer without heavy boxes. */
+.app-sidebar {
+  padding-top: 24px;
+}
+
+.sidebar-nav button {
+  min-height: 43px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.sidebar-user {
+  display: block;
+  padding: 14px 8px 0;
+}
+
+.sidebar-user strong {
+  font-size: 13px;
+}
+
+.sidebar-user span {
+  font-size: 11px;
+}
+
+.global-search input {
+  font-size: 12px;
+}
+
+.history-tools {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.search-box {
+  min-height: 34px;
+  border-radius: 8px;
+}
+
+.search-box input {
+  height: 32px;
+  font-size: 11px;
+  font-weight: 620;
+}
+
+.row-meta {
+  gap: 8px;
+}
+
+.status-dot-label {
+  min-height: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 780;
+}
+
+.status-dot-label::before {
+  width: 6px;
+  height: 6px;
+  margin-right: 4px;
+  box-shadow: none;
+}
+
+.status-dot-label.phase-received::before {
+  background: var(--orange);
+}
+
+.status-dot-label.phase-in_progress::before {
+  background: var(--blue);
+}
+
+.status-dot-label.phase-closed::before {
+  background: var(--green);
+}
+
+.detail-summary {
+  align-items: center;
+  gap: 14px;
+  border-bottom: 0;
+  padding: 16px 20px 10px;
+}
+
+.detail-summary h2 {
+  font-size: 20px;
+  line-height: 1.28;
+}
+
+.detail-actions {
+  gap: 8px;
+}
+
+.phase-track {
+  min-height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  background: #f8fafc;
+  padding: 4px;
+}
+
+.phase-track li {
+  min-width: 58px;
+  border-radius: 999px;
+  padding: 8px 12px;
+  color: #5d6b7f;
+  font-size: 12px;
+  font-weight: 820;
+}
+
+.phase-track .is-current {
+  background: #fff;
+  box-shadow: 0 3px 10px rgba(30, 46, 70, 0.08);
+}
+
+.phase-track.phase-received .is-current {
+  color: #a85d24;
+}
+
+.phase-track.phase-in_progress .is-current {
+  color: var(--blue);
+}
+
+.phase-track.phase-closed .is-current {
+  color: #19734f;
+}
+
+.issue-meta-strip {
+  margin: 0 20px;
+}
+
+.issue-meta-strip div {
+  padding: 10px 12px;
+}
+
+.issue-meta-strip span {
+  font-size: 10px;
+}
+
+.issue-meta-strip strong {
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 760;
+}
+
+.detail-body {
+  padding-top: 16px;
+}
+
+.timeline-row {
+  border-left-width: 2px;
+  border-radius: 0;
+  background: transparent;
+  padding: 8px 8px 8px 13px;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease;
+}
+
+.timeline-row::before {
+  top: 12px;
+  left: -5px;
+  width: 8px;
+  height: 8px;
+}
+
+.timeline-row:hover {
+  background: #fafcff;
+}
+
+.timeline-row.is-selected {
+  background: transparent;
+  box-shadow: none;
+}
+
+.timeline-row.is-selected strong {
+  color: var(--text);
+}
+
+.timeline-row.status-cause_review,
+.timeline-row.status-actioning,
+.timeline-row.status-verification {
+  border-left-color: rgba(47, 111, 207, 0.48);
+}
+
+.timeline-row.status-cause_review::before,
+.timeline-row.status-actioning::before,
+.timeline-row.status-verification::before {
+  border-color: var(--blue);
+  background: #fff;
+}
+
+.timeline-row.is-selected::before {
+  background: currentColor;
+}
+
+@media (max-width: 860px) {
+  .sidebar-user {
+    display: none;
+  }
+}

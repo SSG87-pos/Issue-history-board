@@ -1,4 +1,4 @@
-import { MoreHorizontal, Star } from 'lucide-react';
+import { Star } from 'lucide-react';
 import {
   getGroupedTimeline,
   getHistoryEntriesForDetailIssue,
@@ -62,9 +62,6 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetai
           )}
           <button className="text-button" type="button" onClick={() => onEditEntry(selectedEntry)}>
             이력 수정
-          </button>
-          <button className="icon-button" type="button" aria-label="추가 작업">
-            <MoreHorizontal size={18} />
           </button>
         </div>
       </div>

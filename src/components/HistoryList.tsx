@@ -1,4 +1,4 @@
-import { Filter, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { HistoryEntry, IssueGroup } from '../domain/types';
 import { PHASE_LABELS, STATUS_PHASES } from '../domain/types';
@@ -132,18 +132,10 @@ export function HistoryList({
           <input
             type="search"
             value={query}
-            placeholder="이슈 제목, 스티커, 요약 검색..."
+            placeholder="검색"
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
-        <button
-          className={`filter-button ${openOnly ? 'is-active' : ''}`}
-          type="button"
-          onClick={() => setOpenOnly((value) => !value)}
-        >
-          <Filter size={15} />
-          미완료
-        </button>
       </div>
       {hasActiveFilters && (
         <div className="history-filter-bar" aria-live="polite">
@@ -171,7 +163,6 @@ export function HistoryList({
                 >
                   <div className="row-meta">
                     <time>{entry.date}</time>
-                    {issue && <span className={`group-sticker tone-${issue.groupColorTone}`}>{issue.groupLabel}</span>}
                     <span className={`status-dot-label phase-${STATUS_PHASES[entry.status]}`}>
                       {PHASE_LABELS[STATUS_PHASES[entry.status]]}
                     </span>
@@ -218,7 +209,6 @@ export function HistoryList({
                 }}
               >
                 <div className="row-meta">
-                  <span className={`group-sticker tone-${issue.groupColorTone}`}>{issue.groupLabel}</span>
                   <span className={`status-dot-label phase-${STATUS_PHASES[issue.status]}`}>
                     {PHASE_LABELS[STATUS_PHASES[issue.status]]}
                   </span>
