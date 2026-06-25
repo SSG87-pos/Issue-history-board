@@ -9,6 +9,23 @@ export const STATUS_LABELS: Record<IssueStatus, string> = {
   on_hold: '보류',
 };
 
+export type IssuePhase = 'received' | 'in_progress' | 'closed';
+
+export const PHASE_LABELS: Record<IssuePhase, string> = {
+  received: '접수',
+  in_progress: '진행',
+  closed: '종료',
+};
+
+export const STATUS_PHASES: Record<IssueStatus, IssuePhase> = {
+  occurred: 'received',
+  cause_review: 'in_progress',
+  actioning: 'in_progress',
+  verification: 'in_progress',
+  resolved: 'closed',
+  on_hold: 'in_progress',
+};
+
 export type IssueGroupDisplayStatus = IssueStatus | 'resolution_candidate';
 
 export type Category = {
@@ -40,6 +57,8 @@ export type IssueGroup = {
   groupLabel: string;
   groupColorTone: 'teal' | 'neutral' | 'green';
   ownerName?: string;
+  ownerResearchGroup?: string;
+  relatedDepartment?: string;
   relatedEquipment?: string;
   relatedCustomer?: string;
   priorityLabel?: string;
@@ -60,6 +79,8 @@ export type DetailIssue = {
   relatedCustomer?: string;
   priorityLabel?: string;
   ownerName?: string;
+  ownerResearchGroup?: string;
+  relatedDepartment?: string;
   completedAt?: string;
   completionNote?: string;
   needsReview?: boolean;

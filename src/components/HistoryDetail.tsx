@@ -2,19 +2,20 @@ import { MoreHorizontal, Star } from 'lucide-react';
 import {
   getGroupedTimeline,
   getHistoryEntriesForDetailIssue,
-  getRelatedIssueGroups,
 } from '../domain/selectors';
 import type { HistoryEntry, IssueBoardData, IssueGroup } from '../domain/types';
-import { STATUS_LABELS } from '../domain/types';
+import { PHASE_LABELS, STATUS_LABELS, STATUS_PHASES } from '../domain/types';
 
 type HistoryDetailProps = {
   data: IssueBoardData;
   selectedEntry?: HistoryEntry;
   selectedIssue?: IssueGroup;
+  onCloseDetail?: () => void;
+  onEditEntry: (entry: HistoryEntry) => void;
   onSelectEntry: (entryId: string) => void;
 };
 
-export function HistoryDetail({ data, selectedEntry, selectedIssue, onSelectEntry }: HistoryDetailProps) {
+export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetail, onEditEntry, onSelectEntry }: HistoryDetailProps) {
   if (!selectedEntry || !selectedIssue) {
     return (
       <section className="history-detail empty-detail" aria-label="이력 상세">
@@ -27,7 +28,13 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onSelectEntr
   const detailIssue = data.detailIssues.find((issue) => issue.id === selectedEntry.detailIssueId);
   const sameIssueEntries = getHistoryEntriesForDetailIssue(data, selectedEntry.detailIssueId).slice().reverse();
   const groupedTimeline = getGroupedTimeline(data, selectedIssue.id);
-  const relatedIssues = getRelatedIssueGroups(data, selectedIssue.id).slice(0, 4);
+  const phase = STATUS_PHASES[selectedIssue.status];
+  const ownerName = detailIssue?.ownerName ?? selectedIssue.ownerName ?? selectedEntry.authorName ?? '-';
+  const ownerResearchGroup = detailIssue?.ownerResearchGroup ?? selectedIssue.ownerResearchGroup ?? getFallbackResearchGroup(selectedIssue.categoryId);
+  const relatedDepartment = detailIssue?.relatedDepartment ?? selectedIssue.relatedDepartment ?? getFallbackDepartment(selectedIssue.categoryId);
+  const priorityLabel = detailIssue?.priorityLabel ?? selectedIssue.priorityLabel ?? '보통';
+  const detailLines = toReadableLines(selectedEntry.details);
+  const referenceLinks = selectedEntry.referenceLinks.length ? selectedEntry.referenceLinks : [];
 
   return (
     <section className="history-detail" aria-label="선택한 날짜 이력 상세">
@@ -39,17 +46,23 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onSelectEntr
               <Star size={21} />
             </button>
           </div>
-          <div className="tag-row">
-            <span className={`group-sticker tone-${selectedIssue.groupColorTone}`}>{selectedIssue.groupLabel}</span>
-            {selectedIssue.tags.map((tag) => (
-              <span className="tag" key={tag}>
-                {tag}
-              </span>
-            ))}
-          </div>
         </div>
         <div className="detail-actions">
-          <span className="status-select">{STATUS_LABELS[selectedIssue.status]}</span>
+          <ol className={`phase-track phase-${phase}`} aria-label={`현재 단계 ${PHASE_LABELS[phase]}`}>
+            {(['received', 'in_progress', 'closed'] as const).map((item) => (
+              <li className={item === phase ? 'is-current' : ''} key={item}>
+                {PHASE_LABELS[item]}
+              </li>
+            ))}
+          </ol>
+          {onCloseDetail && (
+            <button className="text-button detail-close-button" type="button" onClick={onCloseDetail}>
+              상세 닫기
+            </button>
+          )}
+          <button className="text-button" type="button" onClick={() => onEditEntry(selectedEntry)}>
+            이력 수정
+          </button>
           <button className="icon-button" type="button" aria-label="추가 작업">
             <MoreHorizontal size={18} />
           </button>
@@ -62,29 +75,36 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onSelectEntr
           <strong>{detailIssue?.firstOccurredAt ?? selectedIssue.firstOccurredAt}</strong>
         </div>
         <div>
-          <span>작성자</span>
-          <strong>{detailIssue?.ownerName ?? selectedEntry.authorName ?? '-'}</strong>
-        </div>
-        <div>
-          <span>관련 설비</span>
-          <strong>{detailIssue?.relatedEquipment ?? selectedIssue.relatedEquipment ?? '-'}</strong>
-        </div>
-        <div>
-          <span>관련 고객</span>
-          <strong>{detailIssue?.relatedCustomer ?? selectedIssue.relatedCustomer ?? '-'}</strong>
-        </div>
-        <div>
           <span>우선순위</span>
-          <strong>{detailIssue?.priorityLabel ?? selectedIssue.priorityLabel ?? '보통'}</strong>
+          <strong>{priorityLabel}</strong>
+        </div>
+        <div>
+          <span>담당자</span>
+          <strong>{ownerName}</strong>
+        </div>
+        <div>
+          <span>담당연구그룹</span>
+          <strong>{ownerResearchGroup}</strong>
+        </div>
+        <div>
+          <span>유관부서</span>
+          <strong>{relatedDepartment}</strong>
         </div>
       </div>
 
       <div className="detail-body">
         <aside className="timeline-panel" aria-label="같은 이슈의 이력 목록">
-          <h3>이력 목록</h3>
+          <div className="timeline-panel__header">
+            <h3>이력 목록</h3>
+            <div className="timeline-legend" aria-label="이력 점 색상 의미">
+              <span className="phase-received">접수</span>
+              <span className="phase-in_progress">진행</span>
+              <span className="phase-closed">종료</span>
+            </div>
+          </div>
           {sameIssueEntries.map((entry) => (
             <button
-              className={`timeline-row ${entry.id === selectedEntry.id ? 'is-selected' : ''}`}
+              className={`timeline-row status-${entry.status} ${entry.id === selectedEntry.id ? 'is-selected' : ''}`}
               key={entry.id}
               type="button"
               onClick={() => onSelectEntry(entry.id)}
@@ -104,43 +124,72 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onSelectEntr
         </aside>
 
         <article className="selected-entry">
-          <p className="entry-kicker">{selectedEntry.date} · {STATUS_LABELS[selectedEntry.status]}</p>
-          <h3>{selectedEntry.summary}</h3>
-          <p className="muted">{selectedEntry.authorName ?? detailIssue?.ownerName ?? '관리자'} · {selectedEntry.updatedAt}</p>
+          <div className="selected-entry__heading">
+            <time>{selectedEntry.date}</time>
+            <h3>{selectedEntry.summary}</h3>
+          </div>
 
           <h4>내용</h4>
-          <p>{selectedEntry.details}</p>
-
-          <h4>조치 사항</h4>
-          <ul>
-            <li>세부 이슈 상태 변경 여부: {selectedEntry.changesDetailIssueStatus ? '반영' : '미반영'}</li>
-            <li>현재 상태: {STATUS_LABELS[selectedEntry.status]}</li>
-            {selectedEntry.nextCheckDate && <li>다음 확인일: {selectedEntry.nextCheckDate}</li>}
+          <ul className="entry-bullet-list">
+            {detailLines.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
           </ul>
 
-          <h4>남은 리스크</h4>
-          <p>{selectedEntry.remainingRisk || '등록된 잔여 리스크가 없습니다.'}</p>
+          <h4>조치 사항</h4>
+          <ul className="entry-bullet-list">
+            <li>세부 이슈 상태 변경 여부: {selectedEntry.changesDetailIssueStatus ? '반영' : '미반영'}</li>
+            <li>현재 상태: {STATUS_LABELS[selectedEntry.status]}</li>
+          </ul>
 
-          <h4>첨부 파일</h4>
-          <div className="attachment-row">
-            <span>{selectedEntry.attachmentName ?? '첨부 파일 없음'}</span>
-            <strong>{selectedEntry.attachmentSizeLabel ?? '-'}</strong>
+          <div className="risk-check-grid">
+            <div>
+              <h4>남은 리스크</h4>
+              <p>{selectedEntry.remainingRisk || '등록된 잔여 리스크가 없습니다.'}</p>
+            </div>
+            {selectedEntry.nextCheckDate && (
+              <div>
+                <h4>다음 확인일</h4>
+                <p className="next-check-date">{selectedEntry.nextCheckDate}</p>
+              </div>
+            )}
+          </div>
+
+          <h4>첨부 URL</h4>
+          <div className="attachment-list">
+            {referenceLinks.length > 0 ? (
+              referenceLinks.map((url) => (
+                <a href={url} key={url} rel="noreferrer" target="_blank">
+                  {url}
+                </a>
+              ))
+            ) : (
+              <span>첨부 URL 없음</span>
+            )}
           </div>
         </article>
-
-        <aside className="related-box" aria-label="관련 항목">
-          <h3>관련 이슈</h3>
-          <div className="related-list">
-            {relatedIssues.map((issue) => (
-              <div className="related-card" key={issue.id}>
-                <strong>{issue.title}</strong>
-                <span>{issue.latestUpdatedAt} · {STATUS_LABELS[issue.status]}</span>
-              </div>
-            ))}
-            {relatedIssues.length === 0 && <p className="muted">관련 항목이 없습니다.</p>}
-          </div>
-        </aside>
       </div>
     </section>
   );
+}
+
+function getFallbackResearchGroup(categoryId: string) {
+  if (categoryId === 'equipment-test') return '시험분석연구그룹';
+  if (categoryId === 'investment-project') return '투자과제기획그룹';
+  if (categoryId === 'system-operation') return '연구운영기획그룹';
+  return '강종솔루션연구그룹';
+}
+
+function getFallbackDepartment(categoryId: string) {
+  if (categoryId === 'equipment-test') return '설비기술센터';
+  if (categoryId === 'investment-project') return '기술기획실';
+  if (categoryId === 'system-operation') return '제도운영지원섹션';
+  return '제품기술섹션';
+}
+
+function toReadableLines(text: string) {
+  return text
+    .split(/\n|(?<=\.)\s+|(?<=다\.)\s*/)
+    .map((line) => line.trim())
+    .filter(Boolean);
 }

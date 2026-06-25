@@ -120,22 +120,3 @@ export function getRecommendedIssueGroups(data: IssueBoardData, input: Recommend
     .sort((a, b) => b.score - a.score || b.issue.latestUpdatedAt.localeCompare(a.issue.latestUpdatedAt))
     .map(({ issue }) => issue);
 }
-
-export function getRelatedIssueGroups(data: IssueBoardData, issueGroupId: string): IssueGroup[] {
-  const current = data.issueGroups.find((issue) => issue.id === issueGroupId);
-  if (!current) return [];
-
-  const currentTags = new Set(current.tags);
-  return data.issueGroups
-    .filter((issue) => issue.id !== issueGroupId && !issue.archived)
-    .map((issue) => {
-      let score = 0;
-      if (issue.categoryId === current.categoryId) score += 2;
-      if (issue.subtopicId === current.subtopicId) score += 3;
-      score += issue.tags.filter((tag) => currentTags.has(tag)).length * 2;
-      return { issue, score };
-    })
-    .filter((item) => item.score > 0)
-    .sort((a, b) => b.score - a.score || b.issue.latestUpdatedAt.localeCompare(a.issue.latestUpdatedAt))
-    .map((item) => item.issue);
-}

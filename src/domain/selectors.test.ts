@@ -5,7 +5,6 @@ import {
   getGroupedTimeline,
   getLongRunningUnresolvedIssues,
   getRecommendedIssueGroups,
-  getRelatedIssueGroups,
   getSubtopicSummaries,
 } from './selectors';
 
@@ -43,12 +42,6 @@ describe('timeline grouping and recommendations', () => {
     expect(recommendations[0].id).toBe('issue-sts-430-surface');
   });
 
-  it('finds related issues without merging them', () => {
-    const related = getRelatedIssueGroups(seedData, 'issue-sts-430-surface');
-
-    expect(related.map((issue) => issue.id)).toContain('issue-sts-corrosion-test');
-    expect(related.map((issue) => issue.id)).not.toContain('issue-sts-430-surface');
-  });
 });
 
 describe('selectors', () => {

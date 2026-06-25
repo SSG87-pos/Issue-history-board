@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PosLAB 이력관리 센터 디자인 방향 5안</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family:
+          Inter, "SF Pro Display", "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: #eef2f7;
+        color: #182033;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #eef2f7;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .board {
+        display: grid;
+        gap: 34px;
+        padding: 32px;
+      }
+
+      .intro {
+        max-width: 1160px;
+      }
+
+      .intro p,
+      .intro h1 {
+        margin: 0;
+      }
+
+      .intro p {
+        color: #586577;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .intro h1 {
+        margin-top: 8px;
+        font-size: 30px;
+        letter-spacing: 0;
+      }
+
+      .mockup {
+        --bg: #f7f9fc;
+        --surface: #ffffff;
+        --surface-2: #f4f7fb;
+        --surface-3: #eef3f9;
+        --text: #172033;
+        --muted: #697589;
+        --faint: #9aa5b5;
+        --line: #d9e2ef;
+        --accent: #1f66e5;
+        --accent-soft: #eaf2ff;
+        --nav: #071c35;
+        --nav-text: #dbe7f7;
+        --received: #f28a32;
+        --progress: #1f66e5;
+        --closed: #26a878;
+        --radius: 8px;
+        --shadow: 0 12px 28px rgba(39, 55, 79, 0.08);
+        overflow: hidden;
+        border: 1px solid rgba(21, 31, 48, 0.14);
+        border-radius: 18px;
+        background: var(--bg);
+        box-shadow: 0 24px 70px rgba(38, 52, 75, 0.14);
+      }
+
+      .mockup__label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        border-bottom: 1px solid var(--line);
+        background: var(--surface);
+        color: var(--text);
+        padding: 14px 18px;
+      }
+
+      .mockup__label strong {
+        font-size: 15px;
+      }
+
+      .mockup__label span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: 118px minmax(0, 1fr);
+        min-height: 760px;
+        background: var(--bg);
+      }
+
+      .sidebar {
+        display: grid;
+        align-content: start;
+        gap: 10px;
+        background: var(--nav);
+        color: var(--nav-text);
+        padding: 20px 10px;
+      }
+
+      .mark {
+        display: grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        margin: 0 auto 18px;
+        border: 1px solid currentColor;
+        border-radius: calc(var(--radius) - 2px);
+        font-size: 12px;
+        font-weight: 900;
+      }
+
+      .nav-item {
+        border: 0;
+        border-radius: calc(var(--radius) - 1px);
+        background: transparent;
+        color: inherit;
+        padding: 12px 10px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .nav-item.active {
+        background: color-mix(in srgb, var(--accent) 30%, transparent);
+        color: #fff;
+      }
+
+      .workspace {
+        min-width: 0;
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: minmax(240px, 1fr) minmax(260px, 390px) 112px;
+        gap: 14px;
+        align-items: center;
+        min-height: 62px;
+        border-bottom: 1px solid var(--line);
+        background: color-mix(in srgb, var(--surface) 94%, transparent);
+        padding: 10px 22px;
+      }
+
+      .title h2,
+      .title p {
+        margin: 0;
+      }
+
+      .title h2 {
+        color: var(--text);
+        font-size: 22px;
+        letter-spacing: 0;
+      }
+
+      .title p {
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .search {
+        display: flex;
+        align-items: center;
+        height: 38px;
+        border: 1px solid var(--line);
+        border-radius: calc(var(--radius) - 1px);
+        background: var(--surface);
+        color: var(--faint);
+        padding: 0 12px;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .primary {
+        height: 38px;
+        border: 0;
+        border-radius: calc(var(--radius) - 1px);
+        background: var(--accent);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .content {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 365px;
+        gap: 18px;
+        padding: 20px 22px 22px;
+      }
+
+      .section-heading {
+        margin-bottom: 14px;
+      }
+
+      .section-heading h3,
+      .section-heading p {
+        margin: 0;
+      }
+
+      .section-heading h3 {
+        color: var(--text);
+        font-size: 17px;
+      }
+
+      .section-heading p {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .category-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 13px;
+      }
+
+      .category,
+      .side,
+      .detail-card,
+      .summary-card,
+      .list-panel {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .category {
+        min-height: 184px;
+        padding: 16px;
+      }
+
+      .category-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 13px;
+      }
+
+      .icon {
+        display: grid;
+        place-items: center;
+        width: 32px;
+        height: 32px;
+        border-radius: calc(var(--radius) - 1px);
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-size: 13px;
+        font-weight: 900;
+      }
+
+      .category h4 {
+        margin: 0;
+        color: var(--text);
+        font-size: 15px;
+      }
+
+      .subtopics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .subtopic {
+        display: grid;
+        gap: 5px;
+        min-height: 66px;
+        border: 1px solid var(--line);
+        border-radius: calc(var(--radius) - 1px);
+        background: var(--surface-2);
+        padding: 10px;
+      }
+
+      .subtopic b {
+        color: var(--text);
+        font-size: 12px;
+      }
+
+      .subtopic span {
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 750;
+      }
+
+      .subtopic strong {
+        color: var(--received);
+        font-size: 12px;
+      }
+
+      .side {
+        display: grid;
+        align-content: start;
+        gap: 12px;
+        padding: 16px;
+      }
+
+      .side-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .side-title h3 {
+        margin: 0;
+        color: var(--text);
+        font-size: 15px;
+      }
+
+      .side-title span {
+        color: var(--accent);
+        font-size: 12px;
+        font-weight: 850;
+      }
+
+      .old-row {
+        display: grid;
+        grid-template-columns: 54px 1fr 64px;
+        gap: 10px;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: calc(var(--radius) - 1px);
+        background: var(--surface-2);
+        padding: 9px;
+      }
+
+      .old-row strong {
+        display: grid;
+        place-items: center;
+        min-height: 34px;
+        border-radius: calc(var(--radius) - 1px);
+        background: color-mix(in srgb, var(--received) 16%, var(--surface));
+        color: var(--received);
+        font-size: 15px;
+      }
+
+      .old-row b {
+        display: block;
+        overflow: hidden;
+        color: var(--text);
+        font-size: 12px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .old-row span,
+      .old-row time {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 750;
+      }
+
+      .chart {
+        display: grid;
+        gap: 9px;
+        border: 1px solid var(--line);
+        border-radius: calc(var(--radius) - 1px);
+        padding: 14px 12px;
+      }
+
+      .bar {
+        display: grid;
+        grid-template-columns: 66px 1fr 24px;
+        gap: 8px;
+        align-items: center;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 750;
+      }
+
+      .track {
+        height: 8px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: var(--surface-3);
+      }
+
+      .track i {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: var(--accent);
+      }
+
+      .detail-shell {
+        display: grid;
+        grid-template-columns: minmax(300px, 0.82fr) minmax(480px, 1.18fr);
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .summary-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 11px;
+        grid-column: 1 / -1;
+      }
+
+      .summary-card {
+        display: grid;
+        gap: 8px;
+        padding: 14px 16px;
+      }
+
+      .summary-card span {
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .summary-card strong {
+        color: var(--text);
+        font-size: 21px;
+      }
+
+      .list-panel {
+        padding: 13px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+
+      .tab {
+        border: 1px solid var(--line);
+        border-radius: calc(var(--radius) - 1px);
+        background: var(--surface-2);
+        color: var(--muted);
+        padding: 8px 10px;
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .tab.active {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .history-row {
+        display: grid;
+        gap: 5px;
+        border-top: 1px solid var(--line);
+        padding: 11px 3px;
+      }
+
+      .history-row:first-of-type {
+        border-top: 0;
+      }
+
+      .row-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 850;
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--progress);
+      }
+
+      .dot.received {
+        background: var(--received);
+      }
+
+      .dot.closed {
+        background: var(--closed);
+      }
+
+      .history-row b {
+        color: var(--text);
+        font-size: 13px;
+      }
+
+      .detail-card {
+        padding: 18px;
+      }
+
+      .detail-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        border-bottom: 1px solid var(--line);
+        padding-bottom: 14px;
+      }
+
+      .detail-head h3 {
+        margin: 0;
+        color: var(--text);
+        font-size: 19px;
+      }
+
+      .phase {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 850;
+        white-space: nowrap;
+      }
+
+      .phase b {
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        padding: 5px 8px;
+      }
+
+      .meta-strip {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+        margin: 14px 0;
+      }
+
+      .meta-strip div {
+        border: 1px solid var(--line);
+        border-radius: calc(var(--radius) - 1px);
+        background: var(--surface-2);
+        padding: 9px;
+      }
+
+      .meta-strip span {
+        display: block;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 800;
+      }
+
+      .meta-strip strong {
+        display: block;
+        margin-top: 4px;
+        color: var(--text);
+        font-size: 11px;
+      }
+
+      .entry {
+        display: grid;
+        gap: 12px;
+      }
+
+      .entry time {
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 850;
+      }
+
+      .entry h4 {
+        margin: 2px 0 0;
+        color: var(--text);
+        font-size: 18px;
+      }
+
+      .entry-section {
+        border-top: 1px solid var(--line);
+        padding-top: 10px;
+      }
+
+      .entry-section b {
+        display: block;
+        color: color-mix(in srgb, var(--closed) 72%, var(--text));
+        font-size: 13px;
+        margin-bottom: 6px;
+      }
+
+      .entry-section p {
+        margin: 0;
+        color: var(--text);
+        font-size: 13px;
+        line-height: 1.55;
+      }
+
+      .linear {
+        --bg: #010102;
+        --surface: #0f1011;
+        --surface-2: #141516;
+        --surface-3: #191a1b;
+        --text: #f7f8f8;
+        --muted: #9aa0aa;
+        --faint: #62666d;
+        --line: #2a2c31;
+        --accent: #6f7ae8;
+        --accent-soft: rgba(94, 106, 210, 0.18);
+        --nav: #010102;
+        --nav-text: #d0d6e0;
+        --radius: 10px;
+        --shadow: none;
+      }
+
+      .clickhouse {
+        --bg: #0a0a0a;
+        --surface: #1a1a1a;
+        --surface-2: #121212;
+        --surface-3: #242424;
+        --text: #ffffff;
+        --muted: #b8b8b8;
+        --faint: #888888;
+        --line: #303030;
+        --accent: #faff69;
+        --accent-soft: rgba(250, 255, 105, 0.15);
+        --nav: #0a0a0a;
+        --nav-text: #ffffff;
+        --radius: 8px;
+        --shadow: none;
+      }
+
+      .clickhouse .primary,
+      .clickhouse .tab.active {
+        color: #0a0a0a;
+      }
+
+      .apple {
+        --bg: #f5f5f7;
+        --surface: rgba(255, 255, 255, 0.84);
+        --surface-2: #ffffff;
+        --surface-3: #ececf1;
+        --text: #1d1d1f;
+        --muted: #6e6e73;
+        --faint: #8f8f94;
+        --line: #dedee3;
+        --accent: #0066cc;
+        --accent-soft: #e8f2ff;
+        --nav: #1d1d1f;
+        --nav-text: #f5f5f7;
+        --radius: 18px;
+        --shadow: 0 14px 40px rgba(29, 29, 31, 0.08);
+      }
+
+      .notion {
+        --bg: #f6f5f4;
+        --surface: #ffffff;
+        --surface-2: #fafaf9;
+        --surface-3: #eeeae5;
+        --text: #1a1a1a;
+        --muted: #787671;
+        --faint: #a4a097;
+        --line: #e5e3df;
+        --accent: #5645d4;
+        --accent-soft: #e6e0f5;
+        --nav: #0a1530;
+        --nav-text: #ffffff;
+        --received: #dd5b00;
+        --progress: #5645d4;
+        --closed: #1aae39;
+        --radius: 12px;
+        --shadow: 0 10px 30px rgba(55, 53, 47, 0.06);
+      }
+
+      .ibm {
+        --bg: #ffffff;
+        --surface: #ffffff;
+        --surface-2: #f4f4f4;
+        --surface-3: #e0e0e0;
+        --text: #161616;
+        --muted: #525252;
+        --faint: #8d8d8d;
+        --line: #dcdcdc;
+        --accent: #0f62fe;
+        --accent-soft: #edf5ff;
+        --nav: #161616;
+        --nav-text: #f4f4f4;
+        --radius: 2px;
+        --shadow: none;
+      }
+
+      .ibm .category,
+      .ibm .side,
+      .ibm .detail-card,
+      .ibm .summary-card,
+      .ibm .list-panel,
+      .ibm .subtopic,
+      .ibm .old-row,
+      .ibm .meta-strip div {
+        border-color: #c6c6c6;
+      }
+
+      @media (max-width: 1180px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          grid-template-columns: repeat(5, auto);
+          align-items: center;
+          min-height: auto;
+        }
+
+        .mark {
+          margin: 0;
+        }
+
+        .content,
+        .detail-shell {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="board">
+      <header class="intro">
+        <p>awesome-design-md 기반 스타일 탐색 · 구성 변경 없음</p>
+        <h1>PosLAB 이력관리 센터 디자인 방향 5안</h1>
+      </header>
+
+      <section class="mockup linear">
+        <div class="mockup__label">
+          <strong>1안 Linear Craft Dark</strong>
+          <span>깊은 차콜 표면, 얇은 경계선, 라벤더 포커스. 기술팀 운영실 같은 밀도.</span>
+        </div>
+        <div class="app">
+          <aside class="sidebar">
+            <div class="mark">PL</div>
+            <button class="nav-item active">현황</button>
+            <button class="nav-item">이력</button>
+            <button class="nav-item">관리</button>
+          </aside>
+          <section class="workspace">
+            <div class="topbar">
+              <div class="title"><h2>PosLAB 이력관리 센터</h2><p>연구원 운영 이슈와 판단 이력을 축적합니다</p></div>
+              <div class="search">검색: STS-430, 시험 조건, 심의 기준</div>
+              <button class="primary">이력 추가</button>
+            </div>
+            <div class="content">
+              <div>
+                <div class="section-heading"><h3>카테고리별 현황</h3><p>대분류 &gt; 하위 주제 별 최근 이슈 및 미해결 현황</p></div>
+                <div class="category-grid">
+                  <article class="category"><div class="category-head"><span class="icon">01</span><h4>강종/제품</h4></div><div class="subtopics"><span class="subtopic"><b>HPF</b><span>최근 06-18</span><strong>2건</strong></span><span class="subtopic"><b>STS</b><span>최근 06-22</span><strong>4건</strong></span><span class="subtopic"><b>전기강판</b><span>최근 06-12</span><strong>1건</strong></span></div></article>
+                  <article class="category"><div class="category-head"><span class="icon">02</span><h4>투자/과제</h4></div><div class="subtopics"><span class="subtopic"><b>신규 투자</b><span>최근 06-17</span><strong>2건</strong></span><span class="subtopic"><b>국책 과제</b><span>최근 06-11</span><strong>1건</strong></span><span class="subtopic"><b>예산/일정</b><span>최근 06-04</span><strong>0건</strong></span></div></article>
+                  <article class="category"><div class="category-head"><span class="icon">03</span><h4>설비/시험</h4></div><div class="subtopics"><span class="subtopic"><b>시험 장비</b><span>최근 06-20</span><strong>3건</strong></span><span class="subtopic"><b>분석 의뢰</b><span>최근 06-13</span><strong>2건</strong></span><span class="subtopic"><b>안전/점검</b><span>최근 06-07</span><strong>1건</strong></span></div></article>
+                  <article class="category"><div class="category-head"><span class="icon">04</span><h4>제도/운영</h4></div><div class="subtopics"><span class="subtopic"><b>운영 기준</b><span>최근 06-21</span><strong>2건</strong></span><span class="subtopic"><b>심의/승인</b><span>최근 06-15</span><strong>1건</strong></span><span class="subtopic"><b>협업 프로세스</b><span>최근 06-10</span><strong>1건</strong></span></div></article>
+                </div>
+              </div>
+              <aside class="side">
+                <div class="side-title"><h3>오래 열린 미해결</h3><span>전체 보기</span></div>
+                <div class="old-row"><strong>41일</strong><div><b>STS-430 표면 결함 재발</b><span>강종/제품 &gt; STS</span></div><time>05-14</time></div>
+                <div class="old-row"><strong>28일</strong><div><b>시험 의뢰 기준 개정 논의</b><span>제도/운영 &gt; 운영 기준</span></div><time>05-28</time></div>
+                <div class="chart"><div class="bar"><span>강종/제품</span><span class="track"><i style="width: 86%"></i></span><b>7</b></div><div class="bar"><span>설비/시험</span><span class="track"><i style="width: 58%"></i></span><b>4</b></div><div class="bar"><span>제도/운영</span><span class="track"><i style="width: 42%"></i></span><b>3</b></div></div>
+              </aside>
+              <div class="detail-shell">
+                <div class="summary-row"><div class="summary-card"><span>이슈 현황</span><strong>총 9건</strong></div><div class="summary-card"><span>미종료 관리</span><strong>6건</strong></div><div class="summary-card"><span>최근 변동</span><strong>3건</strong></div></div>
+                <section class="list-panel"><div class="tabs"><button class="tab active">날짜별 이력</button><button class="tab">이슈별 모음</button></div><div class="history-row"><div class="row-meta"><span>2026-06-22</span><i class="dot"></i><span>진행</span></div><b>압연 조건 변경 후 재발 확인</b></div><div class="history-row"><div class="row-meta"><span>2026-06-17</span><i class="dot received"></i><span>접수</span></div><b>원인 가설 검증 결과</b></div><div class="history-row"><div class="row-meta"><span>2026-06-10</span><i class="dot closed"></i><span>종료</span></div><b>표면 검사 데이터 분석</b></div></section>
+                <section class="detail-card"><div class="detail-head"><h3>STS-430 표면 결함 재발</h3><div class="phase">접수 · <b>진행</b> · 종료</div></div><div class="meta-strip"><div><span>최초 보고일</span><strong>2026-05-14</strong></div><div><span>우선순위</span><strong>높음</strong></div><div><span>담당자</span><strong>박연구</strong></div><div><span>담당연구그룹</span><strong>강종솔루션</strong></div><div><span>유관부서</span><strong>제품기술</strong></div></div><article class="entry"><div><time>2026-06-22</time><h4>압연 조건 변경 후 재발 확인</h4></div><div class="entry-section"><b>내용</b><p>동일 라인 조건에서 표면 결함이 재확인되어 기존 원인 가설과 실제 공정 편차를 대조했습니다.</p></div><div class="entry-section"><b>조치 사항</b><p>조건 편차 범위를 재산정하고 다음 확인일 전까지 검사 데이터를 추가 확보합니다.</p></div></article></section>
+              </div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="mockup clickhouse">
+        <div class="mockup__label">
+          <strong>2안 ClickHouse Operations Black</strong>
+          <span>블랙 캔버스와 노란 지표 강조. 데이터 관제감이 강한 선택지.</span>
+        </div>
+        <div class="app">
+          <aside class="sidebar"><div class="mark">PL</div><button class="nav-item active">현황</button><button class="nav-item">이력</button><button class="nav-item">관리</button></aside>
+          <section class="workspace">
+            <div class="topbar"><div class="title"><h2>PosLAB 이력관리 센터</h2><p>미해결 이슈와 최근 변동을 빠르게 스캔합니다</p></div><div class="search">검색: STS-430, 시험 조건, 심의 기준</div><button class="primary">이력 추가</button></div>
+            <div class="content">
+              <div><div class="section-heading"><h3>카테고리별 현황</h3><p>대분류 &gt; 하위 주제 별 최근 이슈 및 미해결 현황</p></div><div class="category-grid">
+                <article class="category"><div class="category-head"><span class="icon">01</span><h4>강종/제품</h4></div><div class="subtopics"><span class="subtopic"><b>HPF</b><span>최근 06-18</span><strong>2건</strong></span><span class="subtopic"><b>STS</b><span>최근 06-22</span><strong>4건</strong></span><span class="subtopic"><b>전기강판</b><span>최근 06-12</span><strong>1건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">02</span><h4>투자/과제</h4></div><div class="subtopics"><span class="subtopic"><b>신규 투자</b><span>최근 06-17</span><strong>2건</strong></span><span class="subtopic"><b>국책 과제</b><span>최근 06-11</span><strong>1건</strong></span><span class="subtopic"><b>예산/일정</b><span>최근 06-04</span><strong>0건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">03</span><h4>설비/시험</h4></div><div class="subtopics"><span class="subtopic"><b>시험 장비</b><span>최근 06-20</span><strong>3건</strong></span><span class="subtopic"><b>분석 의뢰</b><span>최근 06-13</span><strong>2건</strong></span><span class="subtopic"><b>안전/점검</b><span>최근 06-07</span><strong>1건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">04</span><h4>제도/운영</h4></div><div class="subtopics"><span class="subtopic"><b>운영 기준</b><span>최근 06-21</span><strong>2건</strong></span><span class="subtopic"><b>심의/승인</b><span>최근 06-15</span><strong>1건</strong></span><span class="subtopic"><b>협업 프로세스</b><span>최근 06-10</span><strong>1건</strong></span></div></article>
+              </div></div>
+              <aside class="side"><div class="side-title"><h3>오래 열린 미해결</h3><span>전체 보기</span></div><div class="old-row"><strong>41일</strong><div><b>STS-430 표면 결함 재발</b><span>강종/제품 &gt; STS</span></div><time>05-14</time></div><div class="old-row"><strong>28일</strong><div><b>시험 의뢰 기준 개정 논의</b><span>제도/운영 &gt; 운영 기준</span></div><time>05-28</time></div><div class="chart"><div class="bar"><span>강종/제품</span><span class="track"><i style="width: 86%"></i></span><b>7</b></div><div class="bar"><span>설비/시험</span><span class="track"><i style="width: 58%"></i></span><b>4</b></div><div class="bar"><span>제도/운영</span><span class="track"><i style="width: 42%"></i></span><b>3</b></div></div></aside>
+              <div class="detail-shell"><div class="summary-row"><div class="summary-card"><span>이슈 현황</span><strong>총 9건</strong></div><div class="summary-card"><span>미종료 관리</span><strong>6건</strong></div><div class="summary-card"><span>최근 변동</span><strong>3건</strong></div></div><section class="list-panel"><div class="tabs"><button class="tab active">날짜별 이력</button><button class="tab">이슈별 모음</button></div><div class="history-row"><div class="row-meta"><span>2026-06-22</span><i class="dot"></i><span>진행</span></div><b>압연 조건 변경 후 재발 확인</b></div><div class="history-row"><div class="row-meta"><span>2026-06-17</span><i class="dot received"></i><span>접수</span></div><b>원인 가설 검증 결과</b></div><div class="history-row"><div class="row-meta"><span>2026-06-10</span><i class="dot closed"></i><span>종료</span></div><b>표면 검사 데이터 분석</b></div></section><section class="detail-card"><div class="detail-head"><h3>STS-430 표면 결함 재발</h3><div class="phase">접수 · <b>진행</b> · 종료</div></div><div class="meta-strip"><div><span>최초 보고일</span><strong>2026-05-14</strong></div><div><span>우선순위</span><strong>높음</strong></div><div><span>담당자</span><strong>박연구</strong></div><div><span>담당연구그룹</span><strong>강종솔루션</strong></div><div><span>유관부서</span><strong>제품기술</strong></div></div><article class="entry"><div><time>2026-06-22</time><h4>압연 조건 변경 후 재발 확인</h4></div><div class="entry-section"><b>내용</b><p>동일 라인 조건에서 표면 결함이 재확인되어 기존 원인 가설과 실제 공정 편차를 대조했습니다.</p></div><div class="entry-section"><b>조치 사항</b><p>조건 편차 범위를 재산정하고 다음 확인일 전까지 검사 데이터를 추가 확보합니다.</p></div></article></section></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="mockup apple">
+        <div class="mockup__label">
+          <strong>3안 Apple Calm Glass</strong>
+          <span>밝은 회색 캔버스, 큰 여백, 둥근 반투명 패널. 가장 친숙하고 부담이 적은 톤.</span>
+        </div>
+        <div class="app">
+          <aside class="sidebar"><div class="mark">PL</div><button class="nav-item active">현황</button><button class="nav-item">이력</button><button class="nav-item">관리</button></aside>
+          <section class="workspace">
+            <div class="topbar"><div class="title"><h2>PosLAB 이력관리 센터</h2><p>차분하게 읽고 빠르게 기록하는 내부 이력장</p></div><div class="search">검색: STS-430, 시험 조건, 심의 기준</div><button class="primary">이력 추가</button></div>
+            <div class="content">
+              <div><div class="section-heading"><h3>카테고리별 현황</h3><p>대분류 &gt; 하위 주제 별 최근 이슈 및 미해결 현황</p></div><div class="category-grid">
+                <article class="category"><div class="category-head"><span class="icon">01</span><h4>강종/제품</h4></div><div class="subtopics"><span class="subtopic"><b>HPF</b><span>최근 06-18</span><strong>2건</strong></span><span class="subtopic"><b>STS</b><span>최근 06-22</span><strong>4건</strong></span><span class="subtopic"><b>전기강판</b><span>최근 06-12</span><strong>1건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">02</span><h4>투자/과제</h4></div><div class="subtopics"><span class="subtopic"><b>신규 투자</b><span>최근 06-17</span><strong>2건</strong></span><span class="subtopic"><b>국책 과제</b><span>최근 06-11</span><strong>1건</strong></span><span class="subtopic"><b>예산/일정</b><span>최근 06-04</span><strong>0건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">03</span><h4>설비/시험</h4></div><div class="subtopics"><span class="subtopic"><b>시험 장비</b><span>최근 06-20</span><strong>3건</strong></span><span class="subtopic"><b>분석 의뢰</b><span>최근 06-13</span><strong>2건</strong></span><span class="subtopic"><b>안전/점검</b><span>최근 06-07</span><strong>1건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">04</span><h4>제도/운영</h4></div><div class="subtopics"><span class="subtopic"><b>운영 기준</b><span>최근 06-21</span><strong>2건</strong></span><span class="subtopic"><b>심의/승인</b><span>최근 06-15</span><strong>1건</strong></span><span class="subtopic"><b>협업 프로세스</b><span>최근 06-10</span><strong>1건</strong></span></div></article>
+              </div></div>
+              <aside class="side"><div class="side-title"><h3>오래 열린 미해결</h3><span>전체 보기</span></div><div class="old-row"><strong>41일</strong><div><b>STS-430 표면 결함 재발</b><span>강종/제품 &gt; STS</span></div><time>05-14</time></div><div class="old-row"><strong>28일</strong><div><b>시험 의뢰 기준 개정 논의</b><span>제도/운영 &gt; 운영 기준</span></div><time>05-28</time></div><div class="chart"><div class="bar"><span>강종/제품</span><span class="track"><i style="width: 86%"></i></span><b>7</b></div><div class="bar"><span>설비/시험</span><span class="track"><i style="width: 58%"></i></span><b>4</b></div><div class="bar"><span>제도/운영</span><span class="track"><i style="width: 42%"></i></span><b>3</b></div></div></aside>
+              <div class="detail-shell"><div class="summary-row"><div class="summary-card"><span>이슈 현황</span><strong>총 9건</strong></div><div class="summary-card"><span>미종료 관리</span><strong>6건</strong></div><div class="summary-card"><span>최근 변동</span><strong>3건</strong></div></div><section class="list-panel"><div class="tabs"><button class="tab active">날짜별 이력</button><button class="tab">이슈별 모음</button></div><div class="history-row"><div class="row-meta"><span>2026-06-22</span><i class="dot"></i><span>진행</span></div><b>압연 조건 변경 후 재발 확인</b></div><div class="history-row"><div class="row-meta"><span>2026-06-17</span><i class="dot received"></i><span>접수</span></div><b>원인 가설 검증 결과</b></div><div class="history-row"><div class="row-meta"><span>2026-06-10</span><i class="dot closed"></i><span>종료</span></div><b>표면 검사 데이터 분석</b></div></section><section class="detail-card"><div class="detail-head"><h3>STS-430 표면 결함 재발</h3><div class="phase">접수 · <b>진행</b> · 종료</div></div><div class="meta-strip"><div><span>최초 보고일</span><strong>2026-05-14</strong></div><div><span>우선순위</span><strong>높음</strong></div><div><span>담당자</span><strong>박연구</strong></div><div><span>담당연구그룹</span><strong>강종솔루션</strong></div><div><span>유관부서</span><strong>제품기술</strong></div></div><article class="entry"><div><time>2026-06-22</time><h4>압연 조건 변경 후 재발 확인</h4></div><div class="entry-section"><b>내용</b><p>동일 라인 조건에서 표면 결함이 재확인되어 기존 원인 가설과 실제 공정 편차를 대조했습니다.</p></div><div class="entry-section"><b>조치 사항</b><p>조건 편차 범위를 재산정하고 다음 확인일 전까지 검사 데이터를 추가 확보합니다.</p></div></article></section></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="mockup notion">
+        <div class="mockup__label">
+          <strong>4안 Notion Record Room</strong>
+          <span>문서형 기록장 감성, 파스텔 속성칩, 따뜻한 회색 표면. 참여 장벽이 낮음.</span>
+        </div>
+        <div class="app">
+          <aside class="sidebar"><div class="mark">PL</div><button class="nav-item active">현황</button><button class="nav-item">이력</button><button class="nav-item">관리</button></aside>
+          <section class="workspace">
+            <div class="topbar"><div class="title"><h2>PosLAB 이력관리 센터</h2><p>회의 결정과 운영 이슈를 한 장의 기록처럼 정리합니다</p></div><div class="search">검색: STS-430, 시험 조건, 심의 기준</div><button class="primary">이력 추가</button></div>
+            <div class="content">
+              <div><div class="section-heading"><h3>카테고리별 현황</h3><p>대분류 &gt; 하위 주제 별 최근 이슈 및 미해결 현황</p></div><div class="category-grid">
+                <article class="category"><div class="category-head"><span class="icon">01</span><h4>강종/제품</h4></div><div class="subtopics"><span class="subtopic"><b>HPF</b><span>최근 06-18</span><strong>2건</strong></span><span class="subtopic"><b>STS</b><span>최근 06-22</span><strong>4건</strong></span><span class="subtopic"><b>전기강판</b><span>최근 06-12</span><strong>1건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">02</span><h4>투자/과제</h4></div><div class="subtopics"><span class="subtopic"><b>신규 투자</b><span>최근 06-17</span><strong>2건</strong></span><span class="subtopic"><b>국책 과제</b><span>최근 06-11</span><strong>1건</strong></span><span class="subtopic"><b>예산/일정</b><span>최근 06-04</span><strong>0건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">03</span><h4>설비/시험</h4></div><div class="subtopics"><span class="subtopic"><b>시험 장비</b><span>최근 06-20</span><strong>3건</strong></span><span class="subtopic"><b>분석 의뢰</b><span>최근 06-13</span><strong>2건</strong></span><span class="subtopic"><b>안전/점검</b><span>최근 06-07</span><strong>1건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">04</span><h4>제도/운영</h4></div><div class="subtopics"><span class="subtopic"><b>운영 기준</b><span>최근 06-21</span><strong>2건</strong></span><span class="subtopic"><b>심의/승인</b><span>최근 06-15</span><strong>1건</strong></span><span class="subtopic"><b>협업 프로세스</b><span>최근 06-10</span><strong>1건</strong></span></div></article>
+              </div></div>
+              <aside class="side"><div class="side-title"><h3>오래 열린 미해결</h3><span>전체 보기</span></div><div class="old-row"><strong>41일</strong><div><b>STS-430 표면 결함 재발</b><span>강종/제품 &gt; STS</span></div><time>05-14</time></div><div class="old-row"><strong>28일</strong><div><b>시험 의뢰 기준 개정 논의</b><span>제도/운영 &gt; 운영 기준</span></div><time>05-28</time></div><div class="chart"><div class="bar"><span>강종/제품</span><span class="track"><i style="width: 86%"></i></span><b>7</b></div><div class="bar"><span>설비/시험</span><span class="track"><i style="width: 58%"></i></span><b>4</b></div><div class="bar"><span>제도/운영</span><span class="track"><i style="width: 42%"></i></span><b>3</b></div></div></aside>
+              <div class="detail-shell"><div class="summary-row"><div class="summary-card"><span>이슈 현황</span><strong>총 9건</strong></div><div class="summary-card"><span>미종료 관리</span><strong>6건</strong></div><div class="summary-card"><span>최근 변동</span><strong>3건</strong></div></div><section class="list-panel"><div class="tabs"><button class="tab active">날짜별 이력</button><button class="tab">이슈별 모음</button></div><div class="history-row"><div class="row-meta"><span>2026-06-22</span><i class="dot"></i><span>진행</span></div><b>압연 조건 변경 후 재발 확인</b></div><div class="history-row"><div class="row-meta"><span>2026-06-17</span><i class="dot received"></i><span>접수</span></div><b>원인 가설 검증 결과</b></div><div class="history-row"><div class="row-meta"><span>2026-06-10</span><i class="dot closed"></i><span>종료</span></div><b>표면 검사 데이터 분석</b></div></section><section class="detail-card"><div class="detail-head"><h3>STS-430 표면 결함 재발</h3><div class="phase">접수 · <b>진행</b> · 종료</div></div><div class="meta-strip"><div><span>최초 보고일</span><strong>2026-05-14</strong></div><div><span>우선순위</span><strong>높음</strong></div><div><span>담당자</span><strong>박연구</strong></div><div><span>담당연구그룹</span><strong>강종솔루션</strong></div><div><span>유관부서</span><strong>제품기술</strong></div></div><article class="entry"><div><time>2026-06-22</time><h4>압연 조건 변경 후 재발 확인</h4></div><div class="entry-section"><b>내용</b><p>동일 라인 조건에서 표면 결함이 재확인되어 기존 원인 가설과 실제 공정 편차를 대조했습니다.</p></div><div class="entry-section"><b>조치 사항</b><p>조건 편차 범위를 재산정하고 다음 확인일 전까지 검사 데이터를 추가 확보합니다.</p></div></article></section></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="mockup ibm">
+        <div class="mockup__label">
+          <strong>5안 IBM Research Grid</strong>
+          <span>Carbon 계열의 각진 그리드, 단일 블루 액센트, 무채색 표면. 가장 공식 문서/기관형.</span>
+        </div>
+        <div class="app">
+          <aside class="sidebar"><div class="mark">PL</div><button class="nav-item active">현황</button><button class="nav-item">이력</button><button class="nav-item">관리</button></aside>
+          <section class="workspace">
+            <div class="topbar"><div class="title"><h2>PosLAB 이력관리 센터</h2><p>분류, 상태, 근거를 표준화해 남기는 연구 운영 레지스터</p></div><div class="search">검색: STS-430, 시험 조건, 심의 기준</div><button class="primary">이력 추가</button></div>
+            <div class="content">
+              <div><div class="section-heading"><h3>카테고리별 현황</h3><p>대분류 &gt; 하위 주제 별 최근 이슈 및 미해결 현황</p></div><div class="category-grid">
+                <article class="category"><div class="category-head"><span class="icon">01</span><h4>강종/제품</h4></div><div class="subtopics"><span class="subtopic"><b>HPF</b><span>최근 06-18</span><strong>2건</strong></span><span class="subtopic"><b>STS</b><span>최근 06-22</span><strong>4건</strong></span><span class="subtopic"><b>전기강판</b><span>최근 06-12</span><strong>1건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">02</span><h4>투자/과제</h4></div><div class="subtopics"><span class="subtopic"><b>신규 투자</b><span>최근 06-17</span><strong>2건</strong></span><span class="subtopic"><b>국책 과제</b><span>최근 06-11</span><strong>1건</strong></span><span class="subtopic"><b>예산/일정</b><span>최근 06-04</span><strong>0건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">03</span><h4>설비/시험</h4></div><div class="subtopics"><span class="subtopic"><b>시험 장비</b><span>최근 06-20</span><strong>3건</strong></span><span class="subtopic"><b>분석 의뢰</b><span>최근 06-13</span><strong>2건</strong></span><span class="subtopic"><b>안전/점검</b><span>최근 06-07</span><strong>1건</strong></span></div></article>
+                <article class="category"><div class="category-head"><span class="icon">04</span><h4>제도/운영</h4></div><div class="subtopics"><span class="subtopic"><b>운영 기준</b><span>최근 06-21</span><strong>2건</strong></span><span class="subtopic"><b>심의/승인</b><span>최근 06-15</span><strong>1건</strong></span><span class="subtopic"><b>협업 프로세스</b><span>최근 06-10</span><strong>1건</strong></span></div></article>
+              </div></div>
+              <aside class="side"><div class="side-title"><h3>오래 열린 미해결</h3><span>전체 보기</span></div><div class="old-row"><strong>41일</strong><div><b>STS-430 표면 결함 재발</b><span>강종/제품 &gt; STS</span></div><time>05-14</time></div><div class="old-row"><strong>28일</strong><div><b>시험 의뢰 기준 개정 논의</b><span>제도/운영 &gt; 운영 기준</span></div><time>05-28</time></div><div class="chart"><div class="bar"><span>강종/제품</span><span class="track"><i style="width: 86%"></i></span><b>7</b></div><div class="bar"><span>설비/시험</span><span class="track"><i style="width: 58%"></i></span><b>4</b></div><div class="bar"><span>제도/운영</span><span class="track"><i style="width: 42%"></i></span><b>3</b></div></div></aside>
+              <div class="detail-shell"><div class="summary-row"><div class="summary-card"><span>이슈 현황</span><strong>총 9건</strong></div><div class="summary-card"><span>미종료 관리</span><strong>6건</strong></div><div class="summary-card"><span>최근 변동</span><strong>3건</strong></div></div><section class="list-panel"><div class="tabs"><button class="tab active">날짜별 이력</button><button class="tab">이슈별 모음</button></div><div class="history-row"><div class="row-meta"><span>2026-06-22</span><i class="dot"></i><span>진행</span></div><b>압연 조건 변경 후 재발 확인</b></div><div class="history-row"><div class="row-meta"><span>2026-06-17</span><i class="dot received"></i><span>접수</span></div><b>원인 가설 검증 결과</b></div><div class="history-row"><div class="row-meta"><span>2026-06-10</span><i class="dot closed"></i><span>종료</span></div><b>표면 검사 데이터 분석</b></div></section><section class="detail-card"><div class="detail-head"><h3>STS-430 표면 결함 재발</h3><div class="phase">접수 · <b>진행</b> · 종료</div></div><div class="meta-strip"><div><span>최초 보고일</span><strong>2026-05-14</strong></div><div><span>우선순위</span><strong>높음</strong></div><div><span>담당자</span><strong>박연구</strong></div><div><span>담당연구그룹</span><strong>강종솔루션</strong></div><div><span>유관부서</span><strong>제품기술</strong></div></div><article class="entry"><div><time>2026-06-22</time><h4>압연 조건 변경 후 재발 확인</h4></div><div class="entry-section"><b>내용</b><p>동일 라인 조건에서 표면 결함이 재확인되어 기존 원인 가설과 실제 공정 편차를 대조했습니다.</p></div><div class="entry-section"><b>조치 사항</b><p>조건 편차 범위를 재산정하고 다음 확인일 전까지 검사 데이터를 추가 확보합니다.</p></div></article></section></div>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

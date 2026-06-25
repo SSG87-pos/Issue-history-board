@@ -1,4 +1,11 @@
-import { PlusCircle } from 'lucide-react';
+import {
+  Bell,
+  ChevronDown,
+  CirclePlus,
+  LockKeyhole,
+  Search,
+  ShieldCheck,
+} from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AddHistoryPanel } from './components/AddHistoryPanel';
 import { AdminDataPanel } from './components/AdminDataPanel';
@@ -23,7 +30,8 @@ export function App() {
     getFirstEntryForSubtopic(loadBoardData(), 'sts')?.id,
   );
   const [page, setPage] = useState<'home' | 'subtopic'>('home');
-  const [isAdding, setIsAdding] = useState(false);
+  const [historyPanelMode, setHistoryPanelMode] = useState<'add' | 'edit' | null>(null);
+  const [editingEntryId, setEditingEntryId] = useState<string | undefined>();
 
   useEffect(() => {
     saveBoardData(data);
@@ -46,6 +54,24 @@ export function App() {
     setSelectedSubtopicId(subtopicId);
     setSelectedEntryId(getFirstEntryForSubtopic(data, subtopicId)?.id);
     setPage('subtopic');
+  }
+
+  function openEntry(entryId: string) {
+    const entry = data.historyEntries.find((item) => item.id === entryId);
+    const issue = entry ? data.issueGroups.find((item) => item.id === entry.issueGroupId) : undefined;
+    if (issue) setSelectedSubtopicId(issue.subtopicId);
+    setSelectedEntryId(entryId);
+    setPage('subtopic');
+  }
+
+  function openAddPanel() {
+    setEditingEntryId(undefined);
+    setHistoryPanelMode('add');
+  }
+
+  function openEditPanel(entry: HistoryEntry) {
+    setEditingEntryId(entry.id);
+    setHistoryPanelMode('edit');
   }
 
   function handleAddEntry(
@@ -85,7 +111,49 @@ export function App() {
     setSelectedSubtopicId(issueGroup.subtopicId);
     setSelectedEntryId(entry.id);
     setPage('subtopic');
-    setIsAdding(false);
+    setHistoryPanelMode(null);
+  }
+
+  function handleUpdateEntry(entry: HistoryEntry) {
+    setData((current) => {
+      const nextHistoryEntries = current.historyEntries.map((item) => (item.id === entry.id ? entry : item));
+      const latestForIssue = nextHistoryEntries
+        .filter((item) => item.issueGroupId === entry.issueGroupId)
+        .sort((a, b) => b.date.localeCompare(a.date))[0];
+      const latestForDetail = nextHistoryEntries
+        .filter((item) => item.detailIssueId === entry.detailIssueId)
+        .sort((a, b) => b.date.localeCompare(a.date))[0];
+
+      return {
+        ...current,
+        historyEntries: nextHistoryEntries,
+        detailIssues: current.detailIssues.map((item) =>
+          item.id === entry.detailIssueId && latestForDetail
+            ? {
+                ...item,
+                status: latestForDetail.changesDetailIssueStatus ? latestForDetail.status : item.status,
+                latestUpdatedAt: latestForDetail.date,
+                currentSummary: latestForDetail.summary,
+                completedAt: latestForDetail.status === 'resolved' ? latestForDetail.date : item.completedAt,
+              }
+            : item,
+        ),
+        issueGroups: current.issueGroups.map((item) =>
+          item.id === entry.issueGroupId && latestForIssue
+            ? {
+                ...item,
+                latestUpdatedAt: latestForIssue.date,
+                currentSummary: latestForIssue.summary,
+                status: latestForIssue.changesDetailIssueStatus ? latestForIssue.status : item.status,
+                statusSource: 'auto',
+              }
+            : item,
+        ),
+      };
+    });
+    setSelectedEntryId(entry.id);
+    setHistoryPanelMode(null);
+    setEditingEntryId(undefined);
   }
 
   function handleImportJson(json: string) {
@@ -108,53 +176,111 @@ export function App() {
 
   return (
     <main className="app-shell">
-      <header className="app-header">
-        <div>
-          <p className="eyebrow">Research Issue Board</p>
-          <h1>연구원 이력 관리</h1>
+      <aside className="app-sidebar" aria-label="앱 메뉴">
+        <div className="brand-block">
+          <span className="brand-mark">
+            <ShieldCheck size={18} />
+          </span>
         </div>
-        {page === 'home' && (
-          <button className="primary-button" type="button" onClick={() => setIsAdding(true)}>
-            <PlusCircle size={17} />
-            이력 추가
+        <nav className="sidebar-nav" aria-label="주요 메뉴">
+          <button className={page === 'home' ? 'is-active' : ''} type="button" onClick={() => setPage('home')}>
+            <span className="menu-emoji" aria-hidden="true">🏠</span>
+            <span className="menu-label">홈</span>
           </button>
-        )}
-      </header>
+          <button className={page === 'subtopic' ? 'is-active' : ''} type="button" onClick={() => setPage('subtopic')}>
+            <span className="menu-emoji" aria-hidden="true">🕘</span>
+            <span className="menu-label">이슈 이력</span>
+          </button>
+          <button type="button" onClick={openAddPanel}>
+            <span className="menu-emoji" aria-hidden="true">✍️</span>
+            <span className="menu-label">이력 추가</span>
+          </button>
+          <button type="button">
+            <span className="menu-emoji" aria-hidden="true">📄</span>
+            <span className="menu-label">보고서</span>
+          </button>
+          <button type="button">
+            <span className="menu-emoji" aria-hidden="true">⚙️</span>
+            <span className="menu-label">설정</span>
+          </button>
+        </nav>
+        <div className="sidebar-user">
+          <span className="menu-emoji" aria-hidden="true">👤</span>
+          <div>
+            <strong>관리자</strong>
+            <span>연구기획팀</span>
+          </div>
+        </div>
+      </aside>
 
-      {page === 'home' ? (
-        <HomeDashboard
-          categories={data.categories}
-          subtopics={data.subtopics}
-          summaries={summaries}
-          longRunningIssues={longRunningIssues}
-          selectedSubtopicId={selectedSubtopicId}
-          onSelectSubtopic={openSubtopic}
-        />
-      ) : (
-        <SubtopicDetailPage
-          data={data}
-          category={selectedCategory}
-          subtopic={selectedSubtopic}
-          issues={issues}
-          entries={entries}
-          selectedEntryId={selectedEntry?.id}
-          onSelectEntry={setSelectedEntryId}
-          onBackHome={() => setPage('home')}
-          onOpenAdd={() => setIsAdding(true)}
-        />
-      )}
+      <section className="app-main" aria-label="PosLAB 이력관리 센터">
+        <header className="app-topbar">
+          <div className="topbar-title">
+            <h1>PosLAB 이력관리 센터</h1>
+            <span>
+              <LockKeyhole size={13} />
+              내부 전용
+            </span>
+          </div>
+          <label className="global-search">
+            <Search size={17} />
+            <input type="search" placeholder="이슈, 강종, 설비 등을 검색하세요" />
+            <kbd>⌘ K</kbd>
+          </label>
+          <button className="icon-button topbar-icon" type="button" aria-label="알림">
+            <Bell size={17} />
+          </button>
+          {page === 'home' && (
+            <button className="primary-button" type="button" onClick={openAddPanel}>
+              <CirclePlus size={16} />
+              이력 추가
+              <ChevronDown size={15} />
+            </button>
+          )}
+        </header>
 
-      <AdminDataPanel data={data} onImportJson={handleImportJson} onReset={handleReset} />
+        <div className="main-content">
+          {page === 'home' ? (
+            <HomeDashboard
+              categories={data.categories}
+              subtopics={data.subtopics}
+              summaries={summaries}
+              longRunningIssues={longRunningIssues}
+              selectedSubtopicId={selectedSubtopicId}
+              onSelectSubtopic={openSubtopic}
+            />
+          ) : (
+            <SubtopicDetailPage
+              data={data}
+              category={selectedCategory}
+              subtopic={selectedSubtopic}
+              issues={issues}
+              entries={entries}
+              selectedEntryId={selectedEntry?.id}
+              onSelectEntry={openEntry}
+              onOpenAdd={openAddPanel}
+              onOpenEdit={openEditPanel}
+            />
+          )}
 
-      {isAdding && (
+          <AdminDataPanel data={data} onImportJson={handleImportJson} onReset={handleReset} />
+        </div>
+      </section>
+
+      {historyPanelMode && (
         <AddHistoryPanel
           data={data}
           categoryId={selectedIssue?.categoryId ?? selectedCategory?.id ?? 'grade-product'}
           subtopicId={selectedSubtopicId}
           initialIssueGroupId={selectedIssue?.id}
           initialDetailIssueId={selectedEntry?.detailIssueId}
+          editingEntry={historyPanelMode === 'edit' ? data.historyEntries.find((entry) => entry.id === editingEntryId) : undefined}
           onAddEntry={handleAddEntry}
-          onClose={() => setIsAdding(false)}
+          onUpdateEntry={handleUpdateEntry}
+          onClose={() => {
+            setHistoryPanelMode(null);
+            setEditingEntryId(undefined);
+          }}
         />
       )}
     </main>
