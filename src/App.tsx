@@ -2,8 +2,14 @@ import {
   Bell,
   ChevronDown,
   CirclePlus,
+  Clock3,
+  FileText,
+  Home,
   LockKeyhole,
+  PencilLine,
   Search,
+  Settings,
+  UserRound,
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AddHistoryPanel } from './components/AddHistoryPanel';
@@ -178,27 +184,28 @@ export function App() {
       <aside className="app-sidebar" aria-label="앱 메뉴">
         <nav className="sidebar-nav" aria-label="주요 메뉴">
           <button className={page === 'home' ? 'is-active' : ''} type="button" onClick={() => setPage('home')}>
-            <span className="menu-emoji" aria-hidden="true">🏠</span>
+            <span className="menu-icon" aria-hidden="true"><Home size={16} strokeWidth={2.2} /></span>
             <span className="menu-label">홈</span>
           </button>
           <button className={page === 'subtopic' ? 'is-active' : ''} type="button" onClick={() => setPage('subtopic')}>
-            <span className="menu-emoji" aria-hidden="true">🕘</span>
+            <span className="menu-icon" aria-hidden="true"><Clock3 size={16} strokeWidth={2.2} /></span>
             <span className="menu-label">이슈 이력</span>
           </button>
           <button type="button" onClick={openAddPanel}>
-            <span className="menu-emoji" aria-hidden="true">✍️</span>
+            <span className="menu-icon" aria-hidden="true"><PencilLine size={16} strokeWidth={2.2} /></span>
             <span className="menu-label">이력 추가</span>
           </button>
           <button type="button">
-            <span className="menu-emoji" aria-hidden="true">📄</span>
+            <span className="menu-icon" aria-hidden="true"><FileText size={16} strokeWidth={2.2} /></span>
             <span className="menu-label">보고서</span>
           </button>
           <button type="button">
-            <span className="menu-emoji" aria-hidden="true">⚙️</span>
+            <span className="menu-icon" aria-hidden="true"><Settings size={16} strokeWidth={2.2} /></span>
             <span className="menu-label">설정</span>
           </button>
         </nav>
         <div className="sidebar-user">
+          <span className="sidebar-user-icon" aria-hidden="true"><UserRound size={15} strokeWidth={2.2} /></span>
           <div>
             <strong>관리자</strong>
             <span>연구기획팀</span>

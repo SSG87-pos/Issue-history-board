@@ -3794,3 +3794,99 @@ body {
 .issue-group-row.is-selected .issue-chip::before {
   background: var(--selection-rail);
 }
+
+/* Sidebar readability pass: quieter icons, clearer labels, no floating emoji chips. */
+.app-sidebar {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.9)),
+    radial-gradient(circle at 0% 12%, rgba(80, 151, 232, 0.18), transparent 34%),
+    radial-gradient(circle at 100% 78%, rgba(68, 199, 186, 0.15), transparent 34%),
+    linear-gradient(180deg, #f7fbff 0%, #edf7ff 48%, #f8fcfb 100%);
+}
+
+.sidebar-nav {
+  gap: 7px;
+}
+
+.sidebar-nav button {
+  grid-template-columns: 22px minmax(0, 1fr);
+  min-height: 42px;
+  border-radius: 12px;
+  color: #2b3d55;
+  font-size: 12.5px;
+  font-weight: 850;
+  letter-spacing: 0;
+  padding: 0 11px;
+}
+
+.sidebar-nav button:hover {
+  border-color: rgba(190, 214, 238, 0.78);
+  background: rgba(255, 255, 255, 0.68);
+  color: #15283f;
+}
+
+.sidebar-nav button.is-active {
+  border-color: rgba(139, 184, 232, 0.72);
+  background: linear-gradient(90deg, rgba(73, 141, 225, 0.14), rgba(255, 255, 255, 0.72) 66%);
+  box-shadow: inset 3px 0 0 #3f8be8;
+  color: #142a43;
+}
+
+.sidebar-nav button.is-active::before {
+  display: none;
+}
+
+.menu-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: #6d7f93;
+}
+
+.sidebar-nav button:hover .menu-icon,
+.sidebar-nav button.is-active .menu-icon {
+  color: #2d73c8;
+}
+
+.sidebar-user {
+  align-items: center;
+  gap: 7px;
+  color: #1d3149;
+}
+
+.sidebar-user-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  color: #5b7fa8;
+}
+
+.sidebar-user strong {
+  color: #1d3149;
+  font-size: 12px;
+  line-height: 1.15;
+}
+
+.sidebar-user span {
+  color: #5d7189;
+  font-size: 10.5px;
+  line-height: 1.2;
+}
+
+.subtopic-card.is-selected {
+  border-color: rgba(60, 135, 225, 0.72);
+  background: linear-gradient(90deg, rgba(73, 141, 225, 0.13), rgba(255, 255, 255, 0.92) 70%);
+  box-shadow:
+    inset 3px 0 0 var(--selection-rail),
+    0 8px 18px rgba(43, 69, 99, 0.06);
+}
+
+.subtopic-card.is-selected::after {
+  display: none;
+  content: none;
+}
