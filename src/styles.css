@@ -3891,6 +3891,37 @@ body {
   content: none;
 }
 
+/* Sidebar color lock: keep a gentle blue wash without returning to a white rail. */
+.app-sidebar {
+  border-color: rgba(181, 213, 239, 0.95);
+  background:
+    radial-gradient(circle at 18% 10%, rgba(91, 169, 231, 0.28), transparent 34%),
+    radial-gradient(circle at 80% 92%, rgba(72, 206, 186, 0.2), transparent 38%),
+    linear-gradient(180deg, #edf7ff 0%, #dff0ff 45%, #ecfbf8 100%);
+  box-shadow:
+    inset -1px 0 0 rgba(255, 255, 255, 0.7),
+    0 14px 36px rgba(43, 69, 99, 0.08);
+}
+
+.sidebar-nav button {
+  color: #27435f;
+}
+
+.sidebar-nav button:hover {
+  background: rgba(255, 255, 255, 0.55);
+  color: #17314d;
+}
+
+.sidebar-nav button.is-active {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(232, 246, 255, 0.72)),
+    radial-gradient(circle at 14% 18%, rgba(59, 139, 223, 0.12), transparent 44%);
+}
+
+.sidebar-user {
+  border-top-color: rgba(135, 181, 215, 0.38);
+}
+
 /* Keep issue dates readable in the delayed-issue cards. */
 .long-running-card {
   grid-template-columns: 52px minmax(0, 1fr) 86px;
