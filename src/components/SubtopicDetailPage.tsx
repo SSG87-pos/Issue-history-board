@@ -17,9 +17,10 @@ type SubtopicDetailPageProps = {
   onOpenEdit: (entry: HistoryEntry) => void;
 };
 
-type DashboardFilter = 'all' | 'open' | 'recent' | IssuePhase;
+type DashboardFilter = 'all' | 'delayed' | 'recent' | IssuePhase;
 
 const PHASE_ORDER: IssuePhase[] = ['received', 'in_progress', 'closed'];
+const DELAYED_ISSUE_DAYS = 14;
 
 export function SubtopicDetailPage({
   data,
@@ -49,16 +50,21 @@ export function SubtopicDetailPage({
     [issues],
   );
   const issueTotal = issues.length;
-  const openIssues = issues.filter((issue) => STATUS_PHASES[issue.status] !== 'closed');
+  const delayedIssues = useMemo(() => {
+    const nowTime = Date.now();
+    return issues.filter(
+      (issue) => STATUS_PHASES[issue.status] !== 'closed' && getElapsedDays(issue.firstOccurredAt, nowTime) >= DELAYED_ISSUE_DAYS,
+    );
+  }, [issues]);
   const latestEntryDate = entries[0]?.date;
   const recentCutoff = getDateOffset(latestEntryDate ?? new Date().toISOString().slice(0, 10), -7);
   const recentIssues = issues.filter((issue) => issue.latestUpdatedAt >= recentCutoff);
   const visibleIssues = useMemo(() => {
     if (dashboardFilter === 'all') return issues;
-    if (dashboardFilter === 'open') return issues.filter((issue) => STATUS_PHASES[issue.status] !== 'closed');
+    if (dashboardFilter === 'delayed') return delayedIssues;
     if (dashboardFilter === 'recent') return issues.filter((issue) => issue.latestUpdatedAt >= recentCutoff);
     return issues.filter((issue) => STATUS_PHASES[issue.status] === dashboardFilter);
-  }, [dashboardFilter, issues, recentCutoff]);
+  }, [dashboardFilter, delayedIssues, issues, recentCutoff]);
   const visibleIssueIds = useMemo(() => new Set(visibleIssues.map((issue) => issue.id)), [visibleIssues]);
   const visibleEntries = useMemo(() => entries.filter((entry) => visibleIssueIds.has(entry.issueGroupId)), [entries, visibleIssueIds]);
   const selectedEntry = visibleEntries.find((entry) => entry.id === selectedEntryId) ?? visibleEntries[0];
@@ -131,12 +137,12 @@ export function SubtopicDetailPage({
         </section>
 
         <button
-          className={`dashboard-card dashboard-card--metric ${dashboardFilter === 'open' ? 'is-active' : ''}`}
+          className={`dashboard-card dashboard-card--metric ${dashboardFilter === 'delayed' ? 'is-active' : ''}`}
           type="button"
-          onClick={() => setDashboardFilter('open')}
+          onClick={() => setDashboardFilter('delayed')}
         >
-          <span>미해결 이슈</span>
-          <strong>{openIssues.length}건</strong>
+          <span>처리 지연 이슈</span>
+          <strong>{delayedIssues.length}건</strong>
         </button>
 
         <button
@@ -181,8 +187,13 @@ function getDateOffset(date: string, offsetDays: number) {
   return parsed.toISOString().slice(0, 10);
 }
 
+function getElapsedDays(date: string, nowTime: number) {
+  const startedAt = new Date(`${date}T00:00:00+09:00`).getTime();
+  return Math.max(0, Math.floor((nowTime - startedAt) / 86_400_000));
+}
+
 function getDashboardFilterLabel(filter: DashboardFilter) {
-  if (filter === 'open') return '미해결 이슈';
+  if (filter === 'delayed') return '처리 지연 이슈';
   if (filter === 'recent') return '최근 7일 갱신';
   if (filter === 'all') return '전체 이슈';
   return PHASE_LABELS[filter];
