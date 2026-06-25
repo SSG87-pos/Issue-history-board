@@ -124,23 +124,21 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetai
 
         <article className="selected-entry">
           <div className="selected-entry__heading">
-            <time>{selectedEntry.date}</time>
+            <div className="selected-entry__kicker">
+              <time>{selectedEntry.date}</time>
+              <div className="entry-meta-chips" aria-label="이력 메타 정보">
+                <span className={`entry-meta-chip phase-${entryPhase}`}>{PHASE_LABELS[entryPhase]}</span>
+                <span className={`entry-meta-chip status-${selectedEntry.status}`}>{STATUS_LABELS[selectedEntry.status]}</span>
+                <span className="entry-meta-chip">{recordTypeLabel}</span>
+                {selectedEntry.changesDetailIssueStatus && <span className="entry-meta-chip is-sync">이슈 반영</span>}
+              </div>
+            </div>
             <h3>{selectedEntry.summary}</h3>
           </div>
 
-          <h4>내용</h4>
+          <h4>상세 내용</h4>
           <ul className="entry-bullet-list">
-            {detailLines.map((line) => (
-              <li key={line}>{line}</li>
-            ))}
-          </ul>
-
-          <h4>조치 사항</h4>
-          <ul className="entry-bullet-list">
-            <li>상태: {PHASE_LABELS[entryPhase]}</li>
-            <li>세부 단계: {STATUS_LABELS[selectedEntry.status]}</li>
-            <li>기록 유형: {recordTypeLabel}</li>
-            <li>이슈 상태 반영: {selectedEntry.changesDetailIssueStatus ? '반영' : '미반영'}</li>
+            {detailLines.length > 0 ? detailLines.map((line) => <li key={line}>{line}</li>) : <li>등록된 상세 내용이 없습니다.</li>}
           </ul>
 
           <div className="risk-check-grid">
