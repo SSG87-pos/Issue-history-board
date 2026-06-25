@@ -3934,6 +3934,206 @@ body {
   content: none;
 }
 
+/* Final stacked-detail lock: keep tablet portrait and mobile issue history compact. */
+@media (max-width: 1180px) {
+  .history-detail-anchor {
+    display: none;
+  }
+
+  .subtopic-page__content.is-mobile-detail-open .history-detail-anchor {
+    display: block;
+  }
+
+  .detail-close-button {
+    display: inline-flex;
+  }
+
+  .summary-strip.issue-dashboard {
+    grid-template-columns: minmax(0, 1.45fr) minmax(150px, 0.72fr) minmax(150px, 0.72fr);
+  }
+
+  .summary-strip.issue-dashboard > section,
+  .summary-strip.issue-dashboard > button {
+    min-height: 86px;
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .summary-strip.issue-dashboard {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+
+  .summary-strip.issue-dashboard > section,
+  .summary-strip.issue-dashboard > button {
+    min-height: 58px;
+    border-radius: 14px;
+    padding: 9px 8px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card--status,
+  .summary-strip.issue-dashboard .dashboard-card--metric {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main {
+    width: auto;
+    gap: 2px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main span,
+  .summary-strip.issue-dashboard .dashboard-card--metric span {
+    overflow: hidden;
+    font-size: 10px;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main strong,
+  .summary-strip.issue-dashboard .dashboard-card--metric strong {
+    font-size: 16px;
+    line-height: 1.1;
+  }
+
+  .summary-strip.issue-dashboard .phase-gauge,
+  .summary-strip.issue-dashboard .phase-breakdown,
+  .summary-strip.issue-dashboard .dashboard-card--metric small {
+    display: none;
+  }
+}
+
+/* Stacked issue-history flow: tablet portrait uses the same reveal pattern as mobile. */
+.summary-strip.issue-dashboard {
+  grid-template-columns: minmax(320px, 1.55fr) minmax(148px, 0.72fr) minmax(148px, 0.72fr);
+}
+
+.summary-strip.issue-dashboard .dashboard-card--metric {
+  gap: 5px;
+  min-height: 96px;
+  padding: 16px 18px;
+}
+
+.summary-strip.issue-dashboard .dashboard-card--metric strong {
+  font-size: 22px;
+}
+
+.summary-strip.issue-dashboard .dashboard-card--metric small {
+  -webkit-line-clamp: 1;
+}
+
+@media (max-width: 1180px) {
+  .subtopic-page__content {
+    grid-template-columns: 1fr;
+  }
+
+  .history-detail-anchor {
+    display: none;
+  }
+
+  .subtopic-page__content.is-mobile-detail-open .history-detail-anchor {
+    display: block;
+  }
+
+  .detail-close-button {
+    display: inline-flex;
+  }
+
+  .history-list-anchor,
+  .history-detail-anchor {
+    scroll-margin-top: 18px;
+  }
+
+  .summary-strip.issue-dashboard {
+    grid-template-columns: minmax(0, 1.45fr) minmax(150px, 0.72fr) minmax(150px, 0.72fr);
+  }
+
+  .summary-strip.issue-dashboard > section,
+  .summary-strip.issue-dashboard > button {
+    min-height: 86px;
+    padding: 14px 16px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card--status {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .summary-strip.issue-dashboard .phase-gauge {
+    display: block;
+    width: 88px;
+    height: 46px;
+  }
+
+  .summary-strip.issue-dashboard .phase-gauge__arc::after {
+    right: 14px;
+    bottom: -32px;
+    left: 14px;
+    height: 64px;
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown {
+    gap: 5px;
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown button {
+    min-height: 24px;
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 560px) {
+  .summary-strip.issue-dashboard {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+
+  .summary-strip.issue-dashboard > section,
+  .summary-strip.issue-dashboard > button {
+    min-height: 58px;
+    border-radius: 14px;
+    padding: 9px 8px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card--status,
+  .summary-strip.issue-dashboard .dashboard-card--metric {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main {
+    width: auto;
+    gap: 2px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main span,
+  .summary-strip.issue-dashboard .dashboard-card--metric span {
+    overflow: hidden;
+    font-size: 10px;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main strong,
+  .summary-strip.issue-dashboard .dashboard-card--metric strong {
+    font-size: 16px;
+    line-height: 1.1;
+  }
+
+  .summary-strip.issue-dashboard .phase-gauge,
+  .summary-strip.issue-dashboard .phase-breakdown,
+  .summary-strip.issue-dashboard .dashboard-card--metric small {
+    display: none;
+  }
+}
+
 /* Add/edit drawer redesign: card-based choices and mobile-safe controls. */
 .add-history-drawer {
   display: flex;
@@ -4717,4 +4917,77 @@ body {
 .subtopic-card.is-selected::after {
   display: none;
   content: none;
+}
+
+/* Final stacked-detail lock: keep tablet portrait and mobile issue history compact. */
+@media (max-width: 1180px) {
+  .history-detail-anchor {
+    display: none;
+  }
+
+  .subtopic-page__content.is-mobile-detail-open .history-detail-anchor {
+    display: block;
+  }
+
+  .detail-close-button {
+    display: inline-flex;
+  }
+
+  .summary-strip.issue-dashboard {
+    grid-template-columns: minmax(0, 1.45fr) minmax(150px, 0.72fr) minmax(150px, 0.72fr);
+  }
+
+  .summary-strip.issue-dashboard > section,
+  .summary-strip.issue-dashboard > button {
+    min-height: 86px;
+    padding: 14px 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .summary-strip.issue-dashboard {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+
+  .summary-strip.issue-dashboard > section,
+  .summary-strip.issue-dashboard > button {
+    min-height: 58px;
+    border-radius: 14px;
+    padding: 9px 8px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card--status,
+  .summary-strip.issue-dashboard .dashboard-card--metric {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main {
+    width: auto;
+    gap: 2px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main span,
+  .summary-strip.issue-dashboard .dashboard-card--metric span {
+    overflow: hidden;
+    font-size: 10px;
+    line-height: 1.15;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main strong,
+  .summary-strip.issue-dashboard .dashboard-card--metric strong {
+    font-size: 16px;
+    line-height: 1.1;
+  }
+
+  .summary-strip.issue-dashboard .phase-gauge,
+  .summary-strip.issue-dashboard .phase-breakdown,
+  .summary-strip.issue-dashboard .dashboard-card--metric small {
+    display: none;
+  }
 }

@@ -63,7 +63,7 @@ export function SubtopicDetailPage({
   const visibleEntries = useMemo(() => entries.filter((entry) => visibleIssueIds.has(entry.issueGroupId)), [entries, visibleIssueIds]);
   const selectedEntry = visibleEntries.find((entry) => entry.id === selectedEntryId) ?? visibleEntries[0];
   const selectedIssue = selectedEntry ? visibleIssues.find((issue) => issue.id === selectedEntry.issueGroupId) : undefined;
-  const isMobileViewport = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 860px)').matches;
+  const isStackedDetailViewport = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1180px)').matches;
   const gaugeStyle = {
     '--gauge-fill': getGaugeGradient(issuePhaseCounts, issueTotal),
   } as CSSProperties;
@@ -71,7 +71,7 @@ export function SubtopicDetailPage({
   function handleSelectEntry(entryId: string) {
     onSelectEntry(entryId);
 
-    if (!isMobileViewport()) return;
+    if (!isStackedDetailViewport()) return;
 
     setIsMobileDetailOpen(true);
     window.requestAnimationFrame(() => {
