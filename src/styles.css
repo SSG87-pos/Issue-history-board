@@ -3961,49 +3961,67 @@ body {
 
 @media (max-width: 560px) {
   .summary-strip.issue-dashboard {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px;
-    margin-bottom: 10px;
-  }
-
-  .summary-strip.issue-dashboard > section,
-  .summary-strip.issue-dashboard > button {
-    min-height: 58px;
-    border-radius: 14px;
-    padding: 9px 8px;
-  }
-
-  .summary-strip.issue-dashboard .dashboard-card--status,
-  .summary-strip.issue-dashboard .dashboard-card--metric {
-    display: grid;
     grid-template-columns: 1fr;
-    gap: 2px;
+    gap: 0;
+    margin-bottom: 12px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card--metric {
+    display: none;
+  }
+
+  .summary-strip.issue-dashboard > section {
+    min-height: 112px;
+    border-radius: 18px;
+    padding: 16px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card--status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
   }
 
   .summary-strip.issue-dashboard .dashboard-card__main {
     width: auto;
-    gap: 2px;
+    gap: 6px;
   }
 
-  .summary-strip.issue-dashboard .dashboard-card__main span,
-  .summary-strip.issue-dashboard .dashboard-card--metric span {
-    overflow: hidden;
-    font-size: 10px;
-    line-height: 1.15;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .summary-strip.issue-dashboard .dashboard-card__main span {
+    font-size: 12px;
+    line-height: 1.2;
   }
 
-  .summary-strip.issue-dashboard .dashboard-card__main strong,
-  .summary-strip.issue-dashboard .dashboard-card--metric strong {
-    font-size: 16px;
+  .summary-strip.issue-dashboard .dashboard-card__main strong {
+    font-size: 24px;
     line-height: 1.1;
   }
 
-  .summary-strip.issue-dashboard .phase-gauge,
-  .summary-strip.issue-dashboard .phase-breakdown,
-  .summary-strip.issue-dashboard .dashboard-card--metric small {
-    display: none;
+  .summary-strip.issue-dashboard .phase-gauge {
+    display: block;
+    width: 92px;
+    height: 48px;
+  }
+
+  .summary-strip.issue-dashboard .phase-gauge__arc::after {
+    right: 14px;
+    bottom: -32px;
+    left: 14px;
+    height: 64px;
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown button {
+    justify-content: center;
+    min-height: 28px;
+    padding: 5px 6px;
+    font-size: 12px;
   }
 }
 
@@ -4088,49 +4106,67 @@ body {
 
 @media (max-width: 560px) {
   .summary-strip.issue-dashboard {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px;
-    margin-bottom: 10px;
-  }
-
-  .summary-strip.issue-dashboard > section,
-  .summary-strip.issue-dashboard > button {
-    min-height: 58px;
-    border-radius: 14px;
-    padding: 9px 8px;
-  }
-
-  .summary-strip.issue-dashboard .dashboard-card--status,
-  .summary-strip.issue-dashboard .dashboard-card--metric {
-    display: grid;
     grid-template-columns: 1fr;
-    gap: 2px;
+    gap: 0;
+    margin-bottom: 12px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card--metric {
+    display: none;
+  }
+
+  .summary-strip.issue-dashboard > section {
+    min-height: 112px;
+    border-radius: 18px;
+    padding: 16px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card--status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
   }
 
   .summary-strip.issue-dashboard .dashboard-card__main {
     width: auto;
-    gap: 2px;
+    gap: 6px;
   }
 
-  .summary-strip.issue-dashboard .dashboard-card__main span,
-  .summary-strip.issue-dashboard .dashboard-card--metric span {
-    overflow: hidden;
-    font-size: 10px;
-    line-height: 1.15;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .summary-strip.issue-dashboard .dashboard-card__main span {
+    font-size: 12px;
+    line-height: 1.2;
   }
 
-  .summary-strip.issue-dashboard .dashboard-card__main strong,
-  .summary-strip.issue-dashboard .dashboard-card--metric strong {
-    font-size: 16px;
+  .summary-strip.issue-dashboard .dashboard-card__main strong {
+    font-size: 24px;
     line-height: 1.1;
   }
 
-  .summary-strip.issue-dashboard .phase-gauge,
-  .summary-strip.issue-dashboard .phase-breakdown,
-  .summary-strip.issue-dashboard .dashboard-card--metric small {
-    display: none;
+  .summary-strip.issue-dashboard .phase-gauge {
+    display: block;
+    width: 92px;
+    height: 48px;
+  }
+
+  .summary-strip.issue-dashboard .phase-gauge__arc::after {
+    right: 14px;
+    bottom: -32px;
+    left: 14px;
+    height: 64px;
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown button {
+    justify-content: center;
+    min-height: 28px;
+    padding: 5px 6px;
+    font-size: 12px;
   }
 }
 
@@ -4989,5 +5025,72 @@ body {
   .summary-strip.issue-dashboard .phase-breakdown,
   .summary-strip.issue-dashboard .dashboard-card--metric small {
     display: none;
+  }
+}
+
+/* Narrow mobile summary: keep only the detailed issue-status card. */
+@media (max-width: 560px) {
+  .summary-strip.issue-dashboard {
+    grid-template-columns: 1fr;
+    gap: 0;
+    margin-bottom: 12px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card--metric {
+    display: none;
+  }
+
+  .summary-strip.issue-dashboard > section {
+    min-height: 112px;
+    border-radius: 18px;
+    padding: 16px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card--status {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main {
+    width: auto;
+    gap: 6px;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main span {
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  .summary-strip.issue-dashboard .dashboard-card__main strong {
+    font-size: 24px;
+    line-height: 1.1;
+  }
+
+  .summary-strip.issue-dashboard .phase-gauge {
+    display: block;
+    width: 92px;
+    height: 48px;
+  }
+
+  .summary-strip.issue-dashboard .phase-gauge__arc::after {
+    right: 14px;
+    bottom: -32px;
+    left: 14px;
+    height: 64px;
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .summary-strip.issue-dashboard .phase-breakdown button {
+    justify-content: center;
+    min-height: 28px;
+    padding: 5px 6px;
+    font-size: 12px;
   }
 }
