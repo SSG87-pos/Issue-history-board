@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import type { HistoryEntry, IssueGroup } from '../domain/types';
-import { PHASE_LABELS, STATUS_PHASES } from '../domain/types';
+import { PHASE_LABELS, RECORD_TYPE_LABELS, STATUS_PHASES } from '../domain/types';
 
 const PAGE_SIZE = 10;
 
@@ -52,6 +52,7 @@ export function HistoryList({
         entry.summary,
         entry.details,
         entry.status,
+        entry.recordType ? RECORD_TYPE_LABELS[entry.recordType] : '',
         issue?.title,
         issue?.groupLabel,
         ...(issue?.tags ?? []),
@@ -77,7 +78,7 @@ export function HistoryList({
           issue.groupLabel,
           issue.status,
           ...issue.tags,
-          ...issueEntries.flatMap((entry) => [entry.summary, entry.details, entry.date]),
+          ...issueEntries.flatMap((entry) => [entry.summary, entry.details, entry.date, entry.recordType ? RECORD_TYPE_LABELS[entry.recordType] : '']),
         ]
           .join(' ')
           .toLowerCase();
@@ -164,6 +165,7 @@ export function HistoryList({
                   <div className="row-meta">
                     <time>{entry.date}</time>
                     {issue && <span className="issue-chip">{issue.groupLabel}</span>}
+                    {entry.recordType && <span className="record-type-chip">{RECORD_TYPE_LABELS[entry.recordType]}</span>}
                     <span className={`status-dot-label phase-${STATUS_PHASES[entry.status]}`}>
                       {PHASE_LABELS[STATUS_PHASES[entry.status]]}
                     </span>

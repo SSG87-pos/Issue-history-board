@@ -4,7 +4,7 @@ import {
   getHistoryEntriesForDetailIssue,
 } from '../domain/selectors';
 import type { HistoryEntry, IssueBoardData, IssueGroup } from '../domain/types';
-import { PHASE_LABELS, STATUS_LABELS, STATUS_PHASES } from '../domain/types';
+import { PHASE_LABELS, RECORD_TYPE_LABELS, STATUS_LABELS, STATUS_PHASES } from '../domain/types';
 
 type HistoryDetailProps = {
   data: IssueBoardData;
@@ -35,6 +35,8 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetai
   const priorityLabel = detailIssue?.priorityLabel ?? selectedIssue.priorityLabel ?? '보통';
   const detailLines = toReadableLines(selectedEntry.details);
   const referenceLinks = selectedEntry.referenceLinks.length ? selectedEntry.referenceLinks : [];
+  const entryPhase = STATUS_PHASES[selectedEntry.status];
+  const recordTypeLabel = selectedEntry.recordType ? RECORD_TYPE_LABELS[selectedEntry.recordType] : '일반';
 
   return (
     <section className="history-detail" aria-label="선택한 날짜 이력 상세">
@@ -135,8 +137,10 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetai
 
           <h4>조치 사항</h4>
           <ul className="entry-bullet-list">
-            <li>세부 이슈 상태 변경 여부: {selectedEntry.changesDetailIssueStatus ? '반영' : '미반영'}</li>
-            <li>현재 상태: {STATUS_LABELS[selectedEntry.status]}</li>
+            <li>상태: {PHASE_LABELS[entryPhase]}</li>
+            <li>세부 단계: {STATUS_LABELS[selectedEntry.status]}</li>
+            <li>기록 유형: {recordTypeLabel}</li>
+            <li>이슈 상태 반영: {selectedEntry.changesDetailIssueStatus ? '반영' : '미반영'}</li>
           </ul>
 
           <div className="risk-check-grid">

@@ -26,6 +26,31 @@ export const STATUS_PHASES: Record<IssueStatus, IssuePhase> = {
   on_hold: 'in_progress',
 };
 
+export const PHASE_STATUS_OPTIONS: Record<IssuePhase, IssueStatus[]> = {
+  received: ['occurred'],
+  in_progress: ['cause_review', 'actioning', 'verification', 'on_hold'],
+  closed: ['resolved'],
+};
+
+export const DEFAULT_STATUS_BY_PHASE: Record<IssuePhase, IssueStatus> = {
+  received: 'occurred',
+  in_progress: 'cause_review',
+  closed: 'resolved',
+};
+
+export type IssueRecordType = 'meeting' | 'test' | 'analysis' | 'report' | 'action' | 'approval' | 'customer' | 'other';
+
+export const RECORD_TYPE_LABELS: Record<IssueRecordType, string> = {
+  meeting: '회의',
+  test: '시험',
+  analysis: '분석',
+  report: '보고',
+  action: '조치',
+  approval: '승인',
+  customer: '고객대응',
+  other: '기타',
+};
+
 export type IssueGroupDisplayStatus = IssueStatus | 'resolution_candidate';
 
 export type Category = {
@@ -94,6 +119,7 @@ export type HistoryEntry = {
   date: string;
   status: IssueStatus;
   changesDetailIssueStatus: boolean;
+  recordType?: IssueRecordType;
   summary: string;
   details: string;
   remainingRisk: string;

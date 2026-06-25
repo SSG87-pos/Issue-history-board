@@ -1,8 +1,8 @@
 import { X } from 'lucide-react';
 import { type KeyboardEvent, useMemo, useState } from 'react';
 import { getDetailIssuesForGroup, getRecommendedIssueGroups } from '../domain/selectors';
-import type { Category, DetailIssue, HistoryEntry, IssueBoardData, IssueGroup, IssueStatus, Subtopic } from '../domain/types';
-import { STATUS_LABELS } from '../domain/types';
+import type { Category, DetailIssue, HistoryEntry, IssueBoardData, IssueGroup, IssuePhase, IssueRecordType, IssueStatus, Subtopic } from '../domain/types';
+import { DEFAULT_STATUS_BY_PHASE, PHASE_LABELS, PHASE_STATUS_OPTIONS, RECORD_TYPE_LABELS, STATUS_LABELS, STATUS_PHASES } from '../domain/types';
 
 type AddHistoryPanelProps = {
   data: IssueBoardData;
@@ -109,13 +109,25 @@ export function AddHistoryPanel({
   const selectedDetailIssue =
     !useNewDetailIssue && selectedDetailIssueId ? data.detailIssues.find((detailIssue) => detailIssue.id === selectedDetailIssueId) : undefined;
   const [date, setDate] = useState(() => editingEntry?.date ?? new Date().toISOString().slice(0, 10));
-  const [status, setStatus] = useState<IssueStatus>(editingEntry?.status ?? 'actioning');
+  const initialStatus = editingEntry?.status ?? 'actioning';
+  const [phase, setPhase] = useState<IssuePhase>(STATUS_PHASES[initialStatus]);
+  const [status, setStatus] = useState<IssueStatus>(initialStatus);
+  const [recordType, setRecordType] = useState<IssueRecordType>(editingEntry?.recordType ?? 'action');
   const [changesStatus, setChangesStatus] = useState(editingEntry?.changesDetailIssueStatus ?? true);
   const [summary, setSummary] = useState(editingEntry?.summary ?? '');
   const [details, setDetails] = useState(editingEntry?.details ?? '');
   const [remainingRisk, setRemainingRisk] = useState(editingEntry?.remainingRisk ?? '');
   const [referenceUrlText, setReferenceUrlText] = useState(editingEntry?.referenceLinks.join('\n') ?? '');
-  const statusOptions = Object.entries(STATUS_LABELS) as [IssueStatus, string][];
+  const phaseOptions = Object.entries(PHASE_LABELS) as [IssuePhase, string][];
+  const statusOptions = PHASE_STATUS_OPTIONS[phase].map((value) => [value, STATUS_LABELS[value]] as [IssueStatus, string]);
+  const recordTypeOptions = Object.entries(RECORD_TYPE_LABELS) as [IssueRecordType, string][];
+
+  function selectPhase(nextPhase: IssuePhase) {
+    setPhase(nextPhase);
+    if (!PHASE_STATUS_OPTIONS[nextPhase].includes(status)) {
+      setStatus(DEFAULT_STATUS_BY_PHASE[nextPhase]);
+    }
+  }
 
   function insertListSeparator(
     event: KeyboardEvent<HTMLTextAreaElement>,
@@ -184,6 +196,7 @@ export function AddHistoryPanel({
         date,
         status,
         changesDetailIssueStatus: changesStatus,
+        recordType,
         summary: summary.trim(),
         details: details.trim() || summary.trim(),
         remainingRisk: remainingRisk.trim(),
@@ -262,6 +275,7 @@ export function AddHistoryPanel({
         date,
         status,
         changesDetailIssueStatus: changesStatus,
+        recordType,
         summary: summary.trim(),
         details: details.trim() || summary.trim(),
         remainingRisk: remainingRisk.trim(),
@@ -458,8 +472,8 @@ export function AddHistoryPanel({
                           <input value={newIssueTitle} onChange={(event) => setNewIssueTitle(event.target.value)} placeholder="예: STS 내식성 시험 조건 이슈" />
                         </label>
                         <label className="field">
-                          <span>스티커 태그</span>
-                          <input value={newIssueLabel} onChange={(event) => setNewIssueLabel(event.target.value)} placeholder="예: 시험조건" />
+                          <span>업무 라벨</span>
+                          <input value={newIssueLabel} onChange={(event) => setNewIssueLabel(event.target.value)} placeholder="예: 시험조건, 표면결함개선" />
                         </label>
                       </div>
                     )}
@@ -525,8 +539,23 @@ export function AddHistoryPanel({
               <span>날짜</span>
               <input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
             </label>
+            <div className="field phase-field">
+              <span>상태</span>
+              <div className="status-option-grid phase-option-grid" role="group" aria-label="상태">
+                {phaseOptions.map(([value, label]) => (
+                  <button
+                    className={`status-option phase-${value} ${phase === value ? 'is-selected' : ''}`}
+                    key={value}
+                    type="button"
+                    onClick={() => selectPhase(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
             <div className="field status-field">
-              <span>세부 항목 상태</span>
+              <span>세부 단계</span>
               <div className="status-option-grid" role="group" aria-label="세부 항목 상태">
                 {statusOptions.map(([value, label]) => (
                   <button
@@ -540,11 +569,26 @@ export function AddHistoryPanel({
                 ))}
               </div>
             </div>
+            <div className="field record-type-field">
+              <span>기록 유형</span>
+              <div className="status-option-grid record-type-grid" role="group" aria-label="기록 유형">
+                {recordTypeOptions.map(([value, label]) => (
+                  <button
+                    className={`status-option record-type-option ${recordType === value ? 'is-selected' : ''}`}
+                    key={value}
+                    type="button"
+                    onClick={() => setRecordType(value)}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <label className="checkbox-field">
             <input type="checkbox" checked={changesStatus} onChange={(event) => setChangesStatus(event.target.checked)} />
-            <span>이 기록의 상태를 이슈 상태에도 반영합니다.</span>
+            <span>이 기록의 세부 단계를 이슈 상태에도 반영합니다.</span>
           </label>
 
           <label className="field">
