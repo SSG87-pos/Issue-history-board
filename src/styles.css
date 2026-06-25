@@ -3626,6 +3626,35 @@ body {
   background: currentColor;
 }
 
+.timeline-row.is-selected {
+  border-radius: 10px;
+  background: #eef5ff;
+  box-shadow:
+    inset 0 0 0 1px rgba(80, 139, 222, 0.18),
+    0 6px 14px rgba(43, 69, 99, 0.06);
+}
+
+.timeline-row.status-occurred.is-selected {
+  background: #fff4e8;
+}
+
+.timeline-row.status-cause_review.is-selected,
+.timeline-row.status-actioning.is-selected {
+  background: #edf5ff;
+}
+
+.timeline-row.status-verification.is-selected {
+  background: #eafaf7;
+}
+
+.timeline-row.status-resolved.is-selected {
+  background: #eaf8ef;
+}
+
+.timeline-row.status-on_hold.is-selected {
+  background: #f4f6f9;
+}
+
 /* Home review pass: align category headers, remove icon boxes, and soften selection cues. */
 .topbar-title h1 {
   background: linear-gradient(100deg, #142033 0%, #235cba 48%, #41b8d5 100%);
@@ -3889,6 +3918,37 @@ body {
 .subtopic-card.is-selected::after {
   display: none;
   content: none;
+}
+
+/* Detail phase clarity: make the active status read as the current state. */
+.phase-track li {
+  color: #64748b;
+  font-weight: 860;
+}
+
+.phase-track .is-current {
+  font-weight: 950;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.82),
+    0 7px 16px rgba(30, 46, 70, 0.1);
+}
+
+.phase-track.phase-received .is-current {
+  border: 1px solid rgba(210, 120, 36, 0.22);
+  background: #fff2e4;
+  color: #b45309;
+}
+
+.phase-track.phase-in_progress .is-current {
+  border: 1px solid rgba(37, 99, 235, 0.24);
+  background: #e8f1ff;
+  color: #0f5ed7;
+}
+
+.phase-track.phase-closed .is-current {
+  border: 1px solid rgba(20, 130, 82, 0.22);
+  background: #e8f8ef;
+  color: #137047;
 }
 
 /* Mobile detail cleanup: compact header and remove redundant gauge lines. */

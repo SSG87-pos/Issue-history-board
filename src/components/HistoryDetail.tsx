@@ -141,15 +141,9 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetai
 
           <div className="risk-check-grid">
             <div>
-              <h4>남은 리스크</h4>
+              <h4>향후 계획</h4>
               <p>{selectedEntry.remainingRisk || '등록된 잔여 리스크가 없습니다.'}</p>
             </div>
-            {selectedEntry.nextCheckDate && (
-              <div>
-                <h4>다음 확인일</h4>
-                <p className="next-check-date">{selectedEntry.nextCheckDate}</p>
-              </div>
-            )}
           </div>
 
           <h4>첨부 URL</h4>
