@@ -3655,6 +3655,20 @@ body {
   background: #f4f6f9;
 }
 
+.timeline-row.is-selected {
+  border-left-color: transparent;
+}
+
+.timeline-row.is-selected::before {
+  border-color: var(--timeline-dot);
+  background: var(--timeline-dot);
+  box-shadow: 0 0 0 3px var(--timeline-dot-bg);
+}
+
+.timeline-row.is-selected span {
+  color: var(--timeline-dot);
+}
+
 /* Home review pass: align category headers, remove icon boxes, and soften selection cues. */
 .topbar-title h1 {
   background: linear-gradient(100deg, #142033 0%, #235cba 48%, #41b8d5 100%);
