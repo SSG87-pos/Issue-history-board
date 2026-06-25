@@ -5094,3 +5094,59 @@ body {
     font-size: 12px;
   }
 }
+
+/* Narrow mobile history list: rounded rows with contained scrolling. */
+@media (max-width: 560px) {
+  .history-list-panel {
+    border-radius: 18px;
+    padding: 18px;
+  }
+
+  .history-list,
+  .issue-group-list {
+    display: grid;
+    gap: 8px;
+    max-height: min(54vh, 430px);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 1px 4px 1px 1px;
+  }
+
+  .history-row,
+  .issue-group-row {
+    border: 1px solid rgba(217, 228, 240, 0.96);
+    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 6px 16px rgba(43, 69, 99, 0.045);
+    padding: 13px 14px;
+  }
+
+  .history-row:last-child,
+  .issue-group-row:last-child {
+    border-bottom: 1px solid rgba(217, 228, 240, 0.96);
+  }
+
+  .history-row.is-selected,
+  .issue-group-row.is-selected {
+    border-color: rgba(99, 153, 226, 0.62);
+    border-radius: 15px;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(238, 247, 255, 0.9)),
+      radial-gradient(circle at 18% 0%, rgba(82, 151, 232, 0.13), transparent 46%);
+    box-shadow:
+      0 0 0 3px rgba(74, 144, 226, 0.1),
+      0 10px 22px rgba(43, 69, 99, 0.07);
+  }
+
+  .history-row .row-meta,
+  .issue-group-row .row-meta {
+    gap: 6px;
+  }
+
+  .history-pagination {
+    margin-top: 10px;
+  }
+}
