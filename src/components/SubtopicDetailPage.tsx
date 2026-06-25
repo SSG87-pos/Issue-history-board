@@ -50,11 +50,9 @@ export function SubtopicDetailPage({
   );
   const issueTotal = issues.length;
   const openIssues = issues.filter((issue) => STATUS_PHASES[issue.status] !== 'closed');
-  const oldestOpenIssue = openIssues.slice().sort((a, b) => a.firstOccurredAt.localeCompare(b.firstOccurredAt))[0];
   const latestEntryDate = entries[0]?.date;
   const recentCutoff = getDateOffset(latestEntryDate ?? new Date().toISOString().slice(0, 10), -7);
   const recentIssues = issues.filter((issue) => issue.latestUpdatedAt >= recentCutoff);
-  const nextCheckCount = entries.filter((entry) => entry.nextCheckDate && entry.nextCheckDate >= (latestEntryDate ?? '')).length;
   const visibleIssues = useMemo(() => {
     if (dashboardFilter === 'all') return issues;
     if (dashboardFilter === 'open') return issues.filter((issue) => STATUS_PHASES[issue.status] !== 'closed');
@@ -110,18 +108,25 @@ export function SubtopicDetailPage({
             <strong>총 {issueTotal}건</strong>
           </button>
           <div className="phase-breakdown" aria-label="접수 진행 종료 점유율">
-            {PHASE_ORDER.map((phase) => (
-              <button
-                className={`status-dot-label phase-${phase} ${dashboardFilter === phase ? 'is-active' : ''}`}
-                key={phase}
-                type="button"
-                onClick={() => setDashboardFilter(phase)}
-                style={{ '--phase-flex': issuePhaseCounts[phase] || 0 } as CSSProperties}
-              >
-                <span>{PHASE_LABELS[phase]}</span>
-                <strong>{issuePhaseCounts[phase]}건</strong>
-              </button>
-            ))}
+            {PHASE_ORDER.map((phase) => {
+              const phaseCount = issuePhaseCounts[phase];
+
+              return (
+                <button
+                  aria-label={`${PHASE_LABELS[phase]} ${phaseCount}건`}
+                  className={`status-dot-label phase-${phase} ${phaseCount === 0 ? 'is-empty' : ''} ${
+                    dashboardFilter === phase ? 'is-active' : ''
+                  }`}
+                  key={phase}
+                  type="button"
+                  onClick={() => setDashboardFilter(phase)}
+                  style={{ '--phase-flex': phaseCount || 0 } as CSSProperties}
+                >
+                  <span>{PHASE_LABELS[phase]}</span>
+                  <strong>{phaseCount > 0 ? `${phaseCount}건` : '없음'}</strong>
+                </button>
+              );
+            })}
           </div>
         </section>
 
@@ -130,9 +135,8 @@ export function SubtopicDetailPage({
           type="button"
           onClick={() => setDashboardFilter('open')}
         >
-          <span>미종료 관리</span>
+          <span>미해결 이슈</span>
           <strong>{openIssues.length}건</strong>
-          <small>{oldestOpenIssue ? `최장 ${oldestOpenIssue.firstOccurredAt} · ${oldestOpenIssue.title}` : '열린 이슈 없음'}</small>
         </button>
 
         <button
@@ -140,9 +144,8 @@ export function SubtopicDetailPage({
           type="button"
           onClick={() => setDashboardFilter('recent')}
         >
-          <span>최근 변동</span>
+          <span>최근 7일 갱신</span>
           <strong>{recentIssues.length}건</strong>
-          <small>최근 7일 기준 · 다음 확인 {nextCheckCount}건</small>
         </button>
       </div>
 
@@ -179,8 +182,8 @@ function getDateOffset(date: string, offsetDays: number) {
 }
 
 function getDashboardFilterLabel(filter: DashboardFilter) {
-  if (filter === 'open') return '미종료 관리';
-  if (filter === 'recent') return '최근 변동';
+  if (filter === 'open') return '미해결 이슈';
+  if (filter === 'recent') return '최근 7일 갱신';
   if (filter === 'all') return '전체 이슈';
   return PHASE_LABELS[filter];
 }
