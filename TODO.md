@@ -3,6 +3,7 @@
 ## Now
 
 - [ ] Browser QA: `http://127.0.0.1:5173/`에서 홈, STS 상세, 이력 목록, 이슈별 모음, 이력 추가/수정 drawer를 다시 훑는다.
+- [ ] Pages QA: `gh-pages` 브랜치 배포 후 `https://ssg87-pos.github.io/Issue-history-board/`에서 fallback 시연 데이터가 바로 보이는지 확인한다.
 - [ ] Design guardrail QA: 새 디자인 수정 전 `docs/design-readability-refresh.md`의 `Do Not Revert` 항목을 먼저 확인한다.
 - [ ] Detail QA: `향후 계획`은 보이고 독립 `다음 확인일` 블록은 없는지 확인한다.
 - [ ] Timeline QA: 같은 이슈의 `이력 목록`에서 선택 행 배경, 점, 날짜가 상태색을 따르는지 확인한다.

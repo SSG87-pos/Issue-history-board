@@ -6,6 +6,7 @@ Issue board UI/UX design readability refresh.
 
 Current branch: `codex/design-readability-refresh`
 Remote: `origin` -> `https://github.com/SSG87-pos/Issue-history-board.git`
+Demo URL after `gh-pages` branch deploy: `https://ssg87-pos.github.io/Issue-history-board/`
 
 Use this file with `docs/current-ui-decisions.md` and `TODO.md` when continuing the project in a new chat.
 
@@ -33,6 +34,8 @@ The most important source of truth for visual decisions is:
 
 - Created the main app flow for category, subtopic, issue group, detail issue, and dated history entries.
 - Added local MVP persistence through browser storage and JSON import/export/reset controls.
+- Expanded fallback seed data so the MVP demo has visible issues across all four top-level categories.
+- Added GitHub Pages demo build support and deploy via the `gh-pages` branch.
 - Added home dashboard, subtopic detail page, history list, issue-group view, detail panel, and add/edit drawer.
 - Split representative states into `접수 / 진행 / 종료`.
 - Reworked the design branch through several visual passes:
@@ -58,7 +61,10 @@ Primary source files for this design work:
 - `src/domain/types.ts`
 - `src/domain/selectors.ts`
 - `src/domain/seedData.ts`
+- `src/domain/selectors.test.ts`
 - `src/styles.css`
+- `package.json`
+- `vite.config.ts`
 
 Continuity and decision files:
 

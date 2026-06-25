@@ -68,8 +68,9 @@ describe('selectors', () => {
 
   it('returns long-running unresolved issues oldest first', () => {
     const issues = getLongRunningUnresolvedIssues(seedData);
+    const dates = issues.map((issue) => issue.firstOccurredAt);
 
-    expect(issues[0].id).toBe('issue-hpf-forming-delay');
+    expect(dates).toEqual([...dates].sort((a, b) => a.localeCompare(b)));
     expect(issues.every((issue) => issue.status !== 'resolved')).toBe(true);
   });
 });
