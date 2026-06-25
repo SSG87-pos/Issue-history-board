@@ -20,8 +20,8 @@ export function HomeDashboard({
   onSelectSubtopic,
 }: HomeDashboardProps) {
   const summaryBySubtopic = new Map(summaries.map((summary) => [summary.subtopic.id, summary]));
-  const categoryEmojiById = new Map([
-    ['grade-product', '🧱'],
+  const categoryIconById = new Map([
+    ['grade-product', 'steel-coil'],
     ['investment-project', '📁'],
     ['equipment-test', '🧪'],
     ['system-operation', '🤝'],
@@ -42,20 +42,19 @@ export function HomeDashboard({
       <div className="home-main-panel">
         <div className="home-section-heading">
           <h2>카테고리별 현황</h2>
-          <p>대분류 &gt; 하위 주제 별 최근 이슈 및 미해결 현황</p>
         </div>
         <div className="category-grid">
           {categories
             .slice()
             .sort((a, b) => a.order - b.order)
             .map((category) => {
-              const categoryEmoji = categoryEmojiById.get(category.id) ?? '📌';
+              const categoryIcon = categoryIconById.get(category.id) ?? '📌';
 
               return (
                 <article className="category-card" key={category.id}>
                   <div className="category-card__header">
                     <div className="card-icon" aria-hidden="true">
-                      <span>{categoryEmoji}</span>
+                      <CategoryIcon icon={categoryIcon} />
                     </div>
                     <h2>{category.label}</h2>
                   </div>
@@ -90,7 +89,7 @@ export function HomeDashboard({
       <aside className="side-panel" aria-label="장기 미해결 이슈">
         <div className="side-panel__title">
           <h2>
-            오래 열린 미해결
+            처리 지연 이슈
             <Info size={14} />
           </h2>
           <button type="button">전체 보기</button>
@@ -129,6 +128,18 @@ export function HomeDashboard({
       </aside>
     </section>
   );
+}
+
+function CategoryIcon({ icon }: { icon: string }) {
+  if (icon === 'steel-coil') {
+    return (
+      <span className="steel-coil-icon">
+        <span />
+      </span>
+    );
+  }
+
+  return <span>{icon}</span>;
 }
 
 function getElapsedDays(date: string) {

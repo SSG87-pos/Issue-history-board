@@ -3626,6 +3626,104 @@ body {
   background: currentColor;
 }
 
+/* Home review pass: align category headers, remove icon boxes, and soften selection cues. */
+.topbar-title h1 {
+  background: linear-gradient(100deg, #142033 0%, #235cba 48%, #41b8d5 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.home-section-heading {
+  margin-bottom: 10px;
+}
+
+.home-section-heading p {
+  display: none;
+}
+
+.category-card__header {
+  justify-content: flex-start;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.card-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.category-card:nth-child(2) .card-icon,
+.category-card:nth-child(3) .card-icon,
+.category-card:nth-child(4) .card-icon {
+  background: transparent;
+}
+
+.steel-coil-icon {
+  position: relative;
+  display: inline-block;
+  width: 22px;
+  height: 18px;
+  border: 2px solid #596878;
+  border-radius: 50%;
+  background:
+    radial-gradient(ellipse at 50% 50%, #f8fafc 0 24%, transparent 25%),
+    linear-gradient(135deg, #9da8b6, #536170);
+  transform: rotate(-12deg) skewX(-8deg);
+}
+
+.steel-coil-icon::before,
+.steel-coil-icon::after,
+.steel-coil-icon span {
+  position: absolute;
+  inset: 3px;
+  border: 1.5px solid rgba(255, 255, 255, 0.88);
+  border-radius: 50%;
+  content: "";
+}
+
+.steel-coil-icon::after {
+  inset: 6px;
+  border-color: rgba(34, 48, 65, 0.4);
+}
+
+.steel-coil-icon span {
+  inset: 9px;
+  background: #f8fafc;
+  border-color: transparent;
+}
+
+.subtopic-card.is-selected {
+  border-color: #cad6e5;
+  background: linear-gradient(90deg, rgba(79, 131, 216, 0.08), #fff 56%);
+  box-shadow: inset 3px 0 0 var(--selection-rail);
+}
+
+.subtopic-card.is-selected::after {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  color: var(--blue);
+  content: "선택";
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.history-row.is-selected,
+.issue-group-row.is-selected {
+  background: linear-gradient(90deg, rgba(79, 131, 216, 0.1), #fff 68%);
+  box-shadow: inset 3px 0 0 var(--selection-rail);
+}
+
+.history-row.is-selected strong,
+.issue-group-row.is-selected strong {
+  color: #153c75;
+}
+
 @media (max-width: 860px) {
   .sidebar-user {
     display: none;

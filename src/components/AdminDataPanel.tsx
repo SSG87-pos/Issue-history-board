@@ -23,7 +23,6 @@ export function AdminDataPanel({ data, onImportJson, onReset }: AdminDataPanelPr
     <section className="admin-panel" aria-label="데이터 관리">
       <div>
         <h2>데이터 관리</h2>
-        <p>로컬 MVP 데이터는 브라우저에 저장됩니다. 민감 정보 내보내기는 직접 실행할 때만 진행됩니다.</p>
       </div>
       <div className="admin-actions">
         <button type="button" onClick={exportJson}>
