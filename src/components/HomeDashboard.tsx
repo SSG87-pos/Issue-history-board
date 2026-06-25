@@ -21,7 +21,7 @@ export function HomeDashboard({
 }: HomeDashboardProps) {
   const summaryBySubtopic = new Map(summaries.map((summary) => [summary.subtopic.id, summary]));
   const categoryIconById = new Map([
-    ['grade-product', 'steel-coil'],
+    ['grade-product', '🧵'],
     ['investment-project', '📁'],
     ['equipment-test', '🧪'],
     ['system-operation', '🤝'],
@@ -131,14 +131,6 @@ export function HomeDashboard({
 }
 
 function CategoryIcon({ icon }: { icon: string }) {
-  if (icon === 'steel-coil') {
-    return (
-      <span className="steel-coil-icon">
-        <span />
-      </span>
-    );
-  }
-
   return <span>{icon}</span>;
 }
 
