@@ -1,7 +1,7 @@
 import { X } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { getDetailIssuesForGroup, getRecommendedIssueGroups } from '../domain/selectors';
-import type { DetailIssue, HistoryEntry, IssueBoardData, IssueGroup, IssueStatus } from '../domain/types';
+import type { Category, DetailIssue, HistoryEntry, IssueBoardData, IssueGroup, IssueStatus, Subtopic } from '../domain/types';
 import { STATUS_LABELS } from '../domain/types';
 
 type AddHistoryPanelProps = {
@@ -11,7 +11,17 @@ type AddHistoryPanelProps = {
   initialIssueGroupId?: string;
   initialDetailIssueId?: string;
   editingEntry?: HistoryEntry;
-  onAddEntry: (issueGroup: IssueGroup, detailIssue: DetailIssue, entry: HistoryEntry, isNewDetailIssue: boolean) => void;
+  onAddEntry: (
+    issueGroup: IssueGroup,
+    detailIssue: DetailIssue,
+    entry: HistoryEntry,
+    options: {
+      isNewIssueGroup: boolean;
+      isNewDetailIssue: boolean;
+      category?: Category;
+      subtopic?: Subtopic;
+    },
+  ) => void;
   onUpdateEntry?: (entry: HistoryEntry) => void;
   onClose: () => void;
 };
@@ -28,20 +38,54 @@ export function AddHistoryPanel({
   onClose,
 }: AddHistoryPanelProps) {
   const isEditing = Boolean(editingEntry);
+  const initialIssueGroup = data.issueGroups.find(
+    (issue) => issue.id === (editingEntry?.issueGroupId ?? initialIssueGroupId),
+  );
+  const initialCategoryId = initialIssueGroup?.categoryId ?? categoryId ?? data.categories[0]?.id ?? '';
+  const initialSubtopicId =
+    initialIssueGroup?.subtopicId ??
+    subtopicId ??
+    data.subtopics.find((item) => item.categoryId === initialCategoryId && !item.hidden)?.id ??
+    '';
+  const [selectedCategoryId, setSelectedCategoryId] = useState(initialCategoryId);
+  const [selectedSubtopicId, setSelectedSubtopicId] = useState(initialSubtopicId);
   const [query, setQuery] = useState('');
-  const recommendations = useMemo(
-    () => getRecommendedIssueGroups(data, { categoryId, subtopicId, query }),
-    [categoryId, data, query, subtopicId],
+  const [useNewCategory, setUseNewCategory] = useState(false);
+  const [newCategoryLabel, setNewCategoryLabel] = useState('');
+  const [useNewSubtopic, setUseNewSubtopic] = useState(false);
+  const [newSubtopicLabel, setNewSubtopicLabel] = useState('');
+  const [useNewIssueGroup, setUseNewIssueGroup] = useState(false);
+  const [newIssueTitle, setNewIssueTitle] = useState('');
+  const [newIssueLabel, setNewIssueLabel] = useState('');
+  const [newDetailTitle, setNewDetailTitle] = useState('');
+  const categories = useMemo(
+    () => data.categories.slice().sort((a, b) => a.order - b.order),
+    [data.categories],
   );
-  const issueGroups = recommendations.length
-    ? recommendations
-    : data.issueGroups.filter((issue) => issue.categoryId === categoryId && issue.subtopicId === subtopicId && !issue.archived);
+  const subtopicsForCategory = useMemo(
+    () =>
+      data.subtopics
+        .filter((item) => item.categoryId === selectedCategoryId && !item.hidden)
+        .sort((a, b) => a.order - b.order),
+    [data.subtopics, selectedCategoryId],
+  );
+  const issueGroups = useMemo(
+    () =>
+      getRecommendedIssueGroups(data, {
+        categoryId: selectedCategoryId,
+        subtopicId: selectedSubtopicId,
+        query,
+      }),
+    [data, query, selectedCategoryId, selectedSubtopicId],
+  );
   const [selectedIssueGroupId, setSelectedIssueGroupId] = useState<string>(
-    editingEntry?.issueGroupId ?? initialIssueGroupId ?? issueGroups[0]?.id ?? '',
+    editingEntry?.issueGroupId ?? initialIssueGroupId ?? '',
   );
-  const selectedIssueGroup = data.issueGroups.find((issue) => issue.id === selectedIssueGroupId) ?? issueGroups[0];
+  const selectedCategory = categories.find((category) => category.id === selectedCategoryId);
+  const selectedSubtopic = subtopicsForCategory.find((subtopic) => subtopic.id === selectedSubtopicId);
+  const selectedIssueGroup = data.issueGroups.find((issue) => issue.id === selectedIssueGroupId);
   const recommendedDetailIssues = useMemo(() => {
-    if (!selectedIssueGroup) return [];
+    if (!selectedIssueGroup || useNewIssueGroup) return [];
     const candidates = getDetailIssuesForGroup(data, selectedIssueGroup.id);
     const normalizedQuery = query.trim().toLowerCase();
     if (!normalizedQuery) return candidates;
@@ -57,15 +101,13 @@ export function AddHistoryPanel({
     return candidates.filter((detailIssue) =>
       [detailIssue.title, detailIssue.currentSummary, ...detailIssue.tags].join(' ').toLowerCase().includes(normalizedQuery),
     );
-  }, [data, query, selectedIssueGroup]);
+  }, [data, query, selectedIssueGroup, useNewIssueGroup]);
   const [selectedDetailIssueId, setSelectedDetailIssueId] = useState<string>(
     editingEntry?.detailIssueId ?? initialDetailIssueId ?? '',
   );
   const [useNewDetailIssue, setUseNewDetailIssue] = useState(false);
   const selectedDetailIssue =
-    !useNewDetailIssue && selectedDetailIssueId
-      ? data.detailIssues.find((detailIssue) => detailIssue.id === selectedDetailIssueId)
-      : recommendedDetailIssues[0];
+    !useNewDetailIssue && selectedDetailIssueId ? data.detailIssues.find((detailIssue) => detailIssue.id === selectedDetailIssueId) : undefined;
   const [date, setDate] = useState(() => editingEntry?.date ?? new Date().toISOString().slice(0, 10));
   const [status, setStatus] = useState<IssueStatus>(editingEntry?.status ?? 'actioning');
   const [changesStatus, setChangesStatus] = useState(editingEntry?.changesDetailIssueStatus ?? true);
@@ -75,14 +117,40 @@ export function AddHistoryPanel({
   const [referenceUrlText, setReferenceUrlText] = useState(editingEntry?.referenceLinks.join('\n') ?? '');
   const statusOptions = Object.entries(STATUS_LABELS) as [IssueStatus, string][];
 
+  function selectCategory(nextCategory: Category) {
+    const nextSubtopic = data.subtopics
+      .filter((item) => item.categoryId === nextCategory.id && !item.hidden)
+      .sort((a, b) => a.order - b.order)[0];
+    setSelectedCategoryId(nextCategory.id);
+    setSelectedSubtopicId(nextSubtopic?.id ?? '');
+    setSelectedIssueGroupId('');
+    setSelectedDetailIssueId('');
+    setUseNewCategory(false);
+    setUseNewSubtopic(false);
+    setUseNewIssueGroup(false);
+    setUseNewDetailIssue(false);
+    setQuery('');
+  }
+
+  function selectSubtopic(nextSubtopic: Subtopic) {
+    setSelectedSubtopicId(nextSubtopic.id);
+    setSelectedIssueGroupId('');
+    setSelectedDetailIssueId('');
+    setUseNewSubtopic(false);
+    setUseNewIssueGroup(false);
+    setUseNewDetailIssue(false);
+    setQuery('');
+  }
+
   function selectIssueGroup(issueId: string) {
     setSelectedIssueGroupId(issueId);
+    setUseNewIssueGroup(false);
     setSelectedDetailIssueId('');
     setUseNewDetailIssue(false);
   }
 
   function submit() {
-    if (!selectedIssueGroup || !summary.trim()) return;
+    if (!summary.trim()) return;
     const now = new Date().toISOString();
     const referenceLinks = referenceUrlText
       .split(/\n|,/)
@@ -105,16 +173,58 @@ export function AddHistoryPanel({
       return;
     }
 
-    const detailIssue: DetailIssue = useNewDetailIssue || !selectedDetailIssue
+    const timestamp = Date.now();
+    const category: Category | undefined = useNewCategory
       ? {
-          id: `detail-${Date.now()}`,
-          issueGroupId: selectedIssueGroup.id,
-          title: summary.trim(),
+          id: `category-${timestamp}`,
+          label: newCategoryLabel.trim() || '새 대분류',
+          description: `${newCategoryLabel.trim() || '새 대분류'} 관련 이슈`,
+          order: data.categories.length + 1,
+        }
+      : selectedCategory;
+    if (!category) return;
+
+    const subtopic: Subtopic | undefined = useNewSubtopic || useNewCategory
+      ? {
+          id: `subtopic-${timestamp}`,
+          categoryId: category.id,
+          label: newSubtopicLabel.trim() || '새 하위 주제',
+          order: subtopicsForCategory.length + 1,
+        }
+      : selectedSubtopic;
+    if (!subtopic) return;
+
+    const issueGroup: IssueGroup | undefined = useNewIssueGroup
+      ? {
+          id: `issue-${timestamp}`,
+          title: newIssueTitle.trim() || summary.trim(),
+          categoryId: category.id,
+          subtopicId: subtopic.id,
+          status,
+          statusSource: 'auto',
+          firstOccurredAt: date,
+          latestUpdatedAt: date,
+          currentSummary: summary.trim(),
+          tags: [subtopic.label, newIssueLabel.trim()].filter(Boolean),
+          groupLabel: newIssueLabel.trim() || subtopic.label,
+          groupColorTone: 'neutral',
+          ownerName: '관리자',
+          sensitive: false,
+          archived: false,
+        }
+      : selectedIssueGroup;
+    if (!issueGroup) return;
+
+    const detailIssue: DetailIssue = useNewDetailIssue || useNewIssueGroup || !selectedDetailIssue
+      ? {
+          id: `detail-${timestamp}`,
+          issueGroupId: issueGroup.id,
+          title: newDetailTitle.trim() || summary.trim(),
           status,
           firstOccurredAt: date,
           latestUpdatedAt: date,
           currentSummary: summary.trim(),
-          tags: selectedIssueGroup.tags.slice(0, 2),
+          tags: issueGroup.tags.slice(0, 2),
           ownerName: '관리자',
           needsReview: false,
           archived: false,
@@ -122,11 +232,11 @@ export function AddHistoryPanel({
       : selectedDetailIssue;
 
     onAddEntry(
-      selectedIssueGroup,
+      issueGroup,
       detailIssue,
       {
-        id: `hist-${Date.now()}`,
-        issueGroupId: selectedIssueGroup.id,
+        id: `hist-${timestamp}`,
+        issueGroupId: issueGroup.id,
         detailIssueId: detailIssue.id,
         date,
         status,
@@ -140,7 +250,12 @@ export function AddHistoryPanel({
         createdAt: now,
         updatedAt: now,
       },
-      useNewDetailIssue || !selectedDetailIssue,
+      {
+        isNewIssueGroup: useNewIssueGroup,
+        isNewDetailIssue: useNewDetailIssue || useNewIssueGroup || !selectedDetailIssue,
+        category: useNewCategory ? category : undefined,
+        subtopic: useNewSubtopic || useNewCategory ? subtopic : undefined,
+      },
     );
   }
 
@@ -170,75 +285,219 @@ export function AddHistoryPanel({
             </div>
           ) : (
             <>
-              <label className="field">
-                <span>찾기</span>
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="이슈명, 스티커, 키워드 검색"
-                />
-              </label>
+              <div className="cascade-picker" aria-label="이력 대상 범위">
+                <details className="cascade-step" open>
+                  <summary>
+                    <span>대분류</span>
+                    <strong>{useNewCategory ? newCategoryLabel || '새 대분류' : selectedCategory?.label ?? '선택 필요'}</strong>
+                  </summary>
+                  <div className="cascade-step__body">
+                    <label className="field">
+                      <span>기존 대분류</span>
+                      <select
+                        value={selectedCategoryId}
+                        onChange={(event) => {
+                          const nextCategory = categories.find((category) => category.id === event.target.value);
+                          if (nextCategory) selectCategory(nextCategory);
+                        }}
+                        disabled={useNewCategory}
+                      >
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="inline-new-row">
+                      <input
+                        type="checkbox"
+                        checked={useNewCategory}
+                        onChange={(event) => {
+                          setUseNewCategory(event.target.checked);
+                          setUseNewSubtopic(event.target.checked);
+                          setUseNewIssueGroup(event.target.checked);
+                          setUseNewDetailIssue(event.target.checked);
+                        }}
+                      />
+                      <span>새 대분류로 기록</span>
+                    </label>
+                    {useNewCategory && (
+                      <label className="field">
+                        <span>새 대분류명</span>
+                        <input value={newCategoryLabel} onChange={(event) => setNewCategoryLabel(event.target.value)} placeholder="예: 표면/품질" />
+                      </label>
+                    )}
+                  </div>
+                </details>
 
-              <div className="add-choice-group">
-                <div className="add-choice-group__header">
-                  <span>이슈 선택</span>
-                  <small>{issueGroups.length}건</small>
-                </div>
-                <div className="add-choice-list issue-choice-list">
-                  {issueGroups.map((issue) => (
-                    <button
-                      className={`add-choice-card ${issue.id === selectedIssueGroup?.id ? 'is-selected' : ''}`}
-                      key={issue.id}
-                      type="button"
-                      onClick={() => selectIssueGroup(issue.id)}
-                    >
-                      <span>{issue.groupLabel}</span>
-                      <strong>{issue.title}</strong>
-                      <small>{issue.currentSummary}</small>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="add-choice-group">
-                <div className="add-choice-group__header">
-                  <span>세부 항목</span>
-                  <small>{useNewDetailIssue ? '새 항목' : `${recommendedDetailIssues.length}건`}</small>
-                </div>
-                <div className="add-choice-list detail-choice-list">
-                  {recommendedDetailIssues.map((detailIssue) => (
-                    <button
-                      className={`add-choice-card ${!useNewDetailIssue && detailIssue.id === selectedDetailIssue?.id ? 'is-selected' : ''}`}
-                      key={detailIssue.id}
-                      type="button"
-                      onClick={() => {
-                        setUseNewDetailIssue(false);
-                        setSelectedDetailIssueId(detailIssue.id);
-                      }}
-                    >
-                      <span>{detailIssue.tags[0] ?? selectedIssueGroup?.groupLabel ?? '세부 항목'}</span>
-                      <strong>{detailIssue.title}</strong>
-                      <small>{detailIssue.currentSummary}</small>
-                    </button>
-                  ))}
-                  <button
-                    className={`add-choice-card add-choice-card--new ${useNewDetailIssue ? 'is-selected' : ''}`}
-                    type="button"
-                    onClick={() => setUseNewDetailIssue(true)}
-                  >
-                    <span>새 항목</span>
-                    <strong>이번 요약으로 새 세부 항목 생성</strong>
-                    <small>기존 항목에 묶기 애매할 때 사용합니다.</small>
-                  </button>
-                </div>
+                <details className="cascade-step" open>
+                  <summary>
+                    <span>하위 주제</span>
+                    <strong>{useNewSubtopic || useNewCategory ? newSubtopicLabel || '새 하위 주제' : selectedSubtopic?.label ?? '선택 필요'}</strong>
+                  </summary>
+                  <div className="cascade-step__body">
+                    <label className="field">
+                      <span>기존 하위 주제</span>
+                      <select
+                        value={selectedSubtopicId}
+                        onChange={(event) => {
+                          const nextSubtopic = subtopicsForCategory.find((subtopic) => subtopic.id === event.target.value);
+                          if (nextSubtopic) selectSubtopic(nextSubtopic);
+                        }}
+                        disabled={useNewSubtopic || useNewCategory}
+                      >
+                        {subtopicsForCategory.map((subtopic) => (
+                          <option key={subtopic.id} value={subtopic.id}>
+                            {subtopic.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="inline-new-row">
+                      <input
+                        type="checkbox"
+                        checked={useNewSubtopic || useNewCategory}
+                        disabled={useNewCategory}
+                        onChange={(event) => {
+                          setUseNewSubtopic(event.target.checked);
+                          setUseNewIssueGroup(event.target.checked);
+                          setUseNewDetailIssue(event.target.checked);
+                        }}
+                      />
+                      <span>새 하위 주제로 기록</span>
+                    </label>
+                    {(useNewSubtopic || useNewCategory) && (
+                      <label className="field">
+                        <span>새 하위 주제명</span>
+                        <input value={newSubtopicLabel} onChange={(event) => setNewSubtopicLabel(event.target.value)} placeholder="예: STS-430" />
+                      </label>
+                    )}
+                  </div>
+                </details>
               </div>
             </>
           )}
         </section>
 
+        {!isEditing && (
+          <section className="add-history-section">
+            <div className="add-history-section__title">
+              <span>2</span>
+              <strong>이슈와 세부 항목</strong>
+            </div>
+            <>
+              <label className="field">
+                <span>찾기</span>
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="이슈명, 스티커, 키워드"
+                  disabled={useNewIssueGroup}
+                />
+              </label>
+
+              <div className="cascade-picker">
+                <details className="cascade-step" open>
+                  <summary>
+                    <span>이슈</span>
+                    <strong>{useNewIssueGroup ? newIssueTitle || '새 이슈' : selectedIssueGroup?.title ?? '선택 필요'}</strong>
+                  </summary>
+                  <div className="cascade-step__body">
+                    <label className="field">
+                      <span>기존 이슈</span>
+                      <select
+                        value={selectedIssueGroupId}
+                        onChange={(event) => selectIssueGroup(event.target.value)}
+                        disabled={useNewIssueGroup}
+                      >
+                        <option value="">이슈를 선택하세요</option>
+                        {issueGroups.map((issue) => (
+                          <option key={issue.id} value={issue.id}>
+                            {issue.title}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="inline-new-row">
+                      <input
+                        type="checkbox"
+                        checked={useNewIssueGroup}
+                        onChange={(event) => {
+                          setUseNewIssueGroup(event.target.checked);
+                          setUseNewDetailIssue(event.target.checked);
+                          if (event.target.checked) setSelectedIssueGroupId('');
+                        }}
+                      />
+                      <span>새 이슈로 기록</span>
+                    </label>
+                    {useNewIssueGroup && (
+                      <div className="form-grid compact-form-grid">
+                        <label className="field">
+                          <span>새 이슈명</span>
+                          <input value={newIssueTitle} onChange={(event) => setNewIssueTitle(event.target.value)} placeholder="예: STS 내식성 시험 조건 이슈" />
+                        </label>
+                        <label className="field">
+                          <span>스티커 태그</span>
+                          <input value={newIssueLabel} onChange={(event) => setNewIssueLabel(event.target.value)} placeholder="예: 시험조건" />
+                        </label>
+                      </div>
+                    )}
+                  </div>
+                </details>
+
+                <details className="cascade-step" open>
+                  <summary>
+                    <span>세부 항목</span>
+                    <strong>{useNewDetailIssue || useNewIssueGroup ? newDetailTitle || '새 세부 항목' : selectedDetailIssue?.title ?? '선택 필요'}</strong>
+                  </summary>
+                  <div className="cascade-step__body">
+                    <label className="field">
+                      <span>기존 세부 항목</span>
+                      <select
+                        value={selectedDetailIssueId}
+                        onChange={(event) => {
+                          setUseNewDetailIssue(false);
+                          setSelectedDetailIssueId(event.target.value);
+                        }}
+                        disabled={useNewDetailIssue || useNewIssueGroup || !selectedIssueGroup}
+                      >
+                        <option value="">세부 항목을 선택하세요</option>
+                        {recommendedDetailIssues.map((detailIssue) => (
+                          <option key={detailIssue.id} value={detailIssue.id}>
+                            {detailIssue.title}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="inline-new-row">
+                      <input
+                        type="checkbox"
+                        checked={useNewDetailIssue || useNewIssueGroup}
+                        disabled={useNewIssueGroup}
+                        onChange={(event) => {
+                          setUseNewDetailIssue(event.target.checked);
+                          if (event.target.checked) setSelectedDetailIssueId('');
+                        }}
+                      />
+                      <span>새 세부 항목으로 기록</span>
+                    </label>
+                    {(useNewDetailIssue || useNewIssueGroup) && (
+                      <label className="field">
+                        <span>새 세부 항목명</span>
+                        <input value={newDetailTitle} onChange={(event) => setNewDetailTitle(event.target.value)} placeholder="비워두면 요약으로 생성" />
+                      </label>
+                    )}
+                  </div>
+                </details>
+              </div>
+            </>
+          </section>
+        )}
+
         <section className="add-history-section">
           <div className="add-history-section__title">
-            <span>2</span>
+            <span>{isEditing ? '2' : '3'}</span>
             <strong>기록 내용</strong>
           </div>
           <div className="form-grid">

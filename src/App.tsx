@@ -22,7 +22,7 @@ import {
   getLongRunningUnresolvedIssues,
   getSubtopicSummaries,
 } from './domain/selectors';
-import type { DetailIssue, HistoryEntry, IssueBoardData, IssueGroup } from './domain/types';
+import type { Category, DetailIssue, HistoryEntry, IssueBoardData, IssueGroup, Subtopic } from './domain/types';
 
 function getFirstEntryForSubtopic(data: IssueBoardData, subtopicId: string): HistoryEntry | undefined {
   return getHistoryRowsForSubtopic(data, subtopicId)[0]?.entry;
@@ -83,11 +83,22 @@ export function App() {
     issueGroup: IssueGroup,
     detailIssue: DetailIssue,
     entry: HistoryEntry,
-    isNewDetailIssue: boolean,
+    options: {
+      isNewIssueGroup: boolean;
+      isNewDetailIssue: boolean;
+      category?: Category;
+      subtopic?: Subtopic;
+    },
   ) {
     setData((current) => ({
       ...current,
-      detailIssues: isNewDetailIssue
+      categories: options.category && !current.categories.some((item) => item.id === options.category?.id)
+        ? [...current.categories, options.category]
+        : current.categories,
+      subtopics: options.subtopic && !current.subtopics.some((item) => item.id === options.subtopic?.id)
+        ? [...current.subtopics, options.subtopic]
+        : current.subtopics,
+      detailIssues: options.isNewDetailIssue
         ? [...current.detailIssues, detailIssue]
         : current.detailIssues.map((item) =>
             item.id === detailIssue.id
@@ -100,17 +111,19 @@ export function App() {
                 }
               : item,
           ),
-      issueGroups: current.issueGroups.map((item) =>
-        item.id === issueGroup.id
-          ? {
-              ...item,
-              latestUpdatedAt: entry.date,
-              currentSummary: entry.summary,
-              status: entry.changesDetailIssueStatus ? entry.status : item.status,
-              statusSource: 'auto',
-            }
-          : item,
-      ),
+      issueGroups: options.isNewIssueGroup
+        ? [...current.issueGroups, issueGroup]
+        : current.issueGroups.map((item) =>
+            item.id === issueGroup.id
+              ? {
+                  ...item,
+                  latestUpdatedAt: entry.date,
+                  currentSummary: entry.summary,
+                  status: entry.changesDetailIssueStatus ? entry.status : item.status,
+                  statusSource: 'auto',
+                }
+              : item,
+          ),
       historyEntries: [...current.historyEntries, entry],
     }));
     setSelectedSubtopicId(issueGroup.subtopicId);

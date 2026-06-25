@@ -4002,6 +4002,7 @@ body {
 }
 
 .add-history-section .field input,
+.add-history-section .field select,
 .add-history-section .field textarea {
   border-color: rgba(207, 220, 242, 0.95);
   border-radius: 12px;
@@ -4012,8 +4013,102 @@ body {
   padding: 11px 12px;
 }
 
+.add-history-section .field select {
+  min-height: 42px;
+  appearance: auto;
+}
+
 .add-history-section .field textarea {
   min-height: 96px;
+}
+
+.cascade-picker {
+  display: grid;
+  gap: 9px;
+}
+
+.cascade-step {
+  border: 1px solid rgba(213, 226, 240, 0.92);
+  border-radius: 13px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.cascade-step summary {
+  display: grid;
+  grid-template-columns: 86px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 0 13px;
+  color: #172033;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cascade-step summary::-webkit-details-marker {
+  display: none;
+}
+
+.cascade-step summary::after {
+  justify-self: end;
+  content: "⌄";
+  color: #8392a7;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.cascade-step[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.cascade-step summary span {
+  color: #607187;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.cascade-step summary strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #172033;
+  font-size: 13px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cascade-step__body {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid rgba(226, 235, 244, 0.92);
+  background: linear-gradient(180deg, #fbfdff, #ffffff);
+  padding: 12px;
+}
+
+.inline-new-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+  max-width: 100%;
+  color: #4f6075;
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.inline-new-row input {
+  width: 16px;
+  height: 16px;
+  accent-color: #2f7dd6;
+}
+
+.inline-new-row input:disabled + span {
+  color: #9aa7b8;
+}
+
+.compact-form-grid {
+  gap: 10px;
 }
 
 .add-choice-group {
@@ -4101,23 +4196,169 @@ body {
   background: #fbfdff;
 }
 
+.scope-picker {
+  display: grid;
+  gap: 12px;
+}
+
+.scope-picker__group {
+  display: grid;
+  gap: 7px;
+}
+
+.scope-picker__group > span {
+  color: #4a5c73;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.scope-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.scope-chip {
+  min-height: 34px;
+  border: 1px solid rgba(210, 224, 240, 0.95);
+  border-radius: 999px;
+  background: #fff;
+  color: #506278;
+  font-size: 12px;
+  font-weight: 850;
+  padding: 0 13px;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    color 160ms ease;
+}
+
+.scope-chip:hover {
+  border-color: rgba(91, 151, 224, 0.42);
+  background: #f7fbff;
+}
+
+.scope-chip.is-selected {
+  border-color: rgba(64, 142, 217, 0.36);
+  background: linear-gradient(180deg, #ffffff, #ecf6ff);
+  box-shadow: 0 7px 14px rgba(42, 102, 168, 0.08);
+  color: #0f5ed7;
+}
+
+.add-search-field {
+  margin-bottom: 10px;
+}
+
+.add-search-box {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(207, 220, 242, 0.95);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0 12px;
+}
+
+.add-search-box svg {
+  color: #8b9aaf;
+}
+
+.add-search-box input {
+  min-width: 0;
+  border: 0 !important;
+  background: transparent !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+  box-shadow: none !important;
+}
+
+.add-search-box:focus-within {
+  border-color: rgba(64, 142, 217, 0.5);
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.issue-choice-list,
+.detail-choice-list {
+  max-height: 220px;
+  overflow: auto;
+  padding-right: 3px;
+}
+
+.issue-choice-list {
+  grid-template-columns: 1fr;
+}
+
+.add-choice-card--compact {
+  position: relative;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 10px;
+  row-gap: 2px;
+  align-items: center;
+  padding: 10px 38px 10px 12px;
+}
+
+.add-choice-card--compact span {
+  grid-row: span 2;
+  min-width: 68px;
+  border-radius: 999px;
+  background: #f0f6fc;
+  color: #466075;
+  padding: 5px 8px;
+  text-align: center;
+}
+
+.add-choice-card--compact strong,
+.add-choice-card--compact small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.add-choice-card--compact.is-selected span {
+  background: #dfefff;
+  color: #0f5ed7;
+}
+
+.add-choice-card__check {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+  color: #0f5ed7;
+  transform: translateY(-50%);
+}
+
+.empty-choice-message {
+  margin: 0;
+  border: 1px dashed rgba(210, 224, 240, 0.95);
+  border-radius: 12px;
+  background: #fbfdff;
+  color: #758397;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 14px;
+}
+
 .status-field {
   align-content: start;
 }
 
 .status-option-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 5px;
 }
 
 .status-option {
-  min-height: 39px;
+  min-height: 32px;
   border: 1px solid rgba(217, 228, 240, 0.95);
-  border-radius: 999px;
+  border-radius: 9px;
   background: #fff;
   color: #53647a;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
   cursor: pointer;
   transition:
@@ -4213,16 +4454,42 @@ body {
     padding: 14px;
   }
 
-  .issue-choice-list,
-  .status-option-grid {
+  .issue-choice-list {
     grid-template-columns: 1fr;
+  }
+
+  .status-option-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .scope-chip-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .scope-chip {
+    width: 100%;
+    padding: 0 8px;
   }
 
   .add-choice-card {
     padding: 11px 12px;
   }
 
+  .add-choice-card--compact {
+    grid-template-columns: 1fr;
+    padding: 11px 36px 11px 12px;
+  }
+
+  .add-choice-card--compact span {
+    grid-row: auto;
+    width: fit-content;
+    max-width: 100%;
+    text-align: left;
+  }
+
   .add-history-section .field input,
+  .add-history-section .field select,
   .add-history-section .field textarea {
     min-height: 42px;
     font-size: 13px;

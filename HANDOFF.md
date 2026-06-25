@@ -23,7 +23,9 @@ The latest UI direction is a restrained, light internal operations dashboard:
 - selected timeline rows use status-colored light backgrounds
 - selected timeline dots and dates follow the row status color
 - detailed entry body uses `향후 계획`, not `남은 리스크`
-- add/edit drawer uses card-based issue/detail selection and status buttons, not native select-first layout
+- add/edit drawer uses a cascading `대분류 > 하위 주제 > 이슈 > 세부 항목` step/select flow
+- every add drawer step should offer both existing-item selection and new-item creation where applicable
+- add drawer status buttons are compact segmented controls, not large sticker chips
 - the independent `다음 확인일` block is intentionally removed from the detail body
 
 The most important source of truth for visual decisions is:
@@ -48,7 +50,7 @@ The most important source of truth for visual decisions is:
   - status chips and timeline selection clarified
   - `향후 계획` label applied in detail view
   - `다음 확인일` detail block removed
-  - add/edit drawer reorganized for mobile readability
+  - add/edit drawer reorganized into cascading existing/new selection steps for mobile readability
 
 ## Changed Files
 
@@ -102,7 +104,8 @@ After documentation-only edits, run the same commands again before committing if
 - The user is sensitive to UI elements feeling like generic AI-generated dashboards. Avoid excessive gradients, bokeh/orbs, oversized empty spaces, hard blue outlines, and random emojis.
 - Do not reintroduce the `다음 확인일` detail block unless the user explicitly asks for a redesigned schedule field.
 - Do not rename `향후 계획` back to `남은 리스크` in visible UI. The underlying data field can remain `remainingRisk` for compatibility.
-- Do not revert the add/edit drawer to a select-heavy layout; mobile native dropdowns looked confusing.
+- Do not revert the add/edit drawer to a large card-list layout; it becomes too complex when issue/detail data grows.
+- Keep the add drawer hierarchy explicit: `대분류 > 하위 주제 > 이슈 > 세부 항목`, with existing and new choices available at each step.
 - Do not convert the sidebar back to a dark navigation panel.
 
 ## Next Prompt
