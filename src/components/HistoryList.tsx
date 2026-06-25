@@ -163,6 +163,7 @@ export function HistoryList({
                 >
                   <div className="row-meta">
                     <time>{entry.date}</time>
+                    {issue && <span className="issue-chip">{issue.groupLabel}</span>}
                     <span className={`status-dot-label phase-${STATUS_PHASES[entry.status]}`}>
                       {PHASE_LABELS[STATUS_PHASES[entry.status]]}
                     </span>
@@ -209,6 +210,7 @@ export function HistoryList({
                 }}
               >
                 <div className="row-meta">
+                  <span className="issue-chip">{issue.groupLabel}</span>
                   <span className={`status-dot-label phase-${STATUS_PHASES[issue.status]}`}>
                     {PHASE_LABELS[STATUS_PHASES[issue.status]]}
                   </span>

@@ -3729,3 +3729,68 @@ body {
     display: none;
   }
 }
+
+/* Light color pass: add a soft sidebar wash and restore compact issue tags. */
+.app-sidebar {
+  border-right-color: rgba(189, 216, 239, 0.9);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(122, 189, 235, 0.34), transparent 38%),
+    radial-gradient(circle at 78% 88%, rgba(84, 209, 189, 0.2), transparent 34%),
+    linear-gradient(180deg, #f8fcff 0%, #eff7ff 54%, #f7fbfb 100%);
+}
+
+.sidebar-nav button {
+  color: #455b75;
+}
+
+.sidebar-nav button:hover,
+.sidebar-nav button.is-active {
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow: inset 0 0 0 1px rgba(189, 216, 239, 0.62);
+  color: #183453;
+}
+
+.sidebar-nav button.is-active::before {
+  background: linear-gradient(180deg, #3f8be8, #47c8c0);
+}
+
+.menu-emoji {
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.sidebar-user {
+  border-top-color: rgba(169, 201, 227, 0.72);
+}
+
+.issue-chip {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  max-width: 96px;
+  overflow: hidden;
+  color: #536276;
+  font-size: 10.5px;
+  font-weight: 780;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.issue-chip::before {
+  width: 3px;
+  height: 10px;
+  border-radius: 999px;
+  background: #9ab4d8;
+  content: "";
+  margin-right: 5px;
+}
+
+.history-row.is-selected .issue-chip,
+.issue-group-row.is-selected .issue-chip {
+  color: #254c80;
+}
+
+.history-row.is-selected .issue-chip::before,
+.issue-group-row.is-selected .issue-chip::before {
+  background: var(--selection-rail);
+}
