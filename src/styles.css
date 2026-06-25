@@ -3906,3 +3906,40 @@ body {
   overflow-wrap: normal;
   word-break: keep-all;
 }
+
+/* Selection surface pass: replace left rails with soft 21st-style rings. */
+.sidebar-nav button.is-active {
+  border-color: rgba(104, 158, 229, 0.58);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(238, 247, 255, 0.9)),
+    radial-gradient(circle at 18% 18%, rgba(76, 151, 233, 0.14), transparent 42%);
+  box-shadow:
+    0 0 0 3px rgba(74, 144, 226, 0.1),
+    0 8px 18px rgba(43, 69, 99, 0.08);
+  color: #142a43;
+}
+
+.sidebar-nav button.is-active::before {
+  display: none;
+}
+
+.sidebar-nav button.is-active .menu-icon {
+  color: #2d73c8;
+}
+
+.subtopic-card.is-selected,
+.history-row.is-selected,
+.issue-group-row.is-selected {
+  border-color: rgba(99, 153, 226, 0.62);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 247, 255, 0.88)),
+    radial-gradient(circle at 18% 0%, rgba(82, 151, 232, 0.13), transparent 46%);
+  box-shadow:
+    0 0 0 3px rgba(74, 144, 226, 0.1),
+    0 10px 22px rgba(43, 69, 99, 0.07);
+}
+
+.subtopic-card.is-selected::after {
+  display: none;
+  content: none;
+}
