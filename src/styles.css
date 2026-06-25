@@ -3891,6 +3891,101 @@ body {
   content: none;
 }
 
+/* Mobile detail cleanup: compact header and remove redundant gauge lines. */
+@media (max-width: 560px) {
+  .subtopic-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px 12px;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 18px;
+  }
+
+  .subtopic-hero > div:first-child {
+    min-width: 0;
+  }
+
+  .subtopic-hero .breadcrumb {
+    overflow: hidden;
+    font-size: 11px;
+    line-height: 1.2;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .subtopic-hero h2 {
+    margin-top: 5px;
+    font-size: 26px;
+    line-height: 1.1;
+  }
+
+  .subtopic-hero .page-actions {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    gap: 7px;
+  }
+
+  .subtopic-hero .text-button,
+  .subtopic-hero .primary-button {
+    width: auto;
+    min-height: 38px;
+    padding: 0 13px;
+    white-space: nowrap;
+  }
+
+  .subtopic-hero .text-button {
+    background: rgba(255, 255, 255, 0.78);
+  }
+
+  .summary-strip.issue-dashboard {
+    gap: 12px;
+  }
+
+  .summary-strip.issue-dashboard div {
+    border-bottom: 0;
+  }
+
+  .dashboard-card--status {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .dashboard-card.is-active,
+  .dashboard-card:focus-within {
+    box-shadow:
+      0 0 0 3px rgba(74, 144, 226, 0.1),
+      0 10px 22px rgba(43, 69, 99, 0.07);
+  }
+
+  .dashboard-card--status .phase-gauge {
+    display: none;
+  }
+
+  .dashboard-card--status .phase-breakdown {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .dashboard-card--status .phase-breakdown button {
+    justify-content: center;
+    border-color: rgba(207, 220, 242, 0.72);
+    background: rgba(248, 251, 255, 0.8);
+    box-shadow: none;
+    padding: 7px 6px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .dashboard-card--status .phase-breakdown button.is-active {
+    border-color: rgba(99, 153, 226, 0.54);
+    background: #fff;
+    box-shadow: none;
+  }
+}
+
 /* Sidebar color lock: keep a gentle blue wash without returning to a white rail. */
 .app-sidebar {
   border-color: rgba(181, 213, 239, 0.95);
