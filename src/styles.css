@@ -5150,3 +5150,100 @@ body {
     margin-top: 10px;
   }
 }
+
+/* Add drawer cleanup: body-first cascade steps and compact admin-ready controls. */
+.add-history-drawer {
+  width: min(640px, calc(100vw - 28px));
+  padding: 22px;
+}
+
+.add-history-drawer__header {
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.add-history-drawer__header p {
+  display: none;
+}
+
+.add-history-flow {
+  gap: 12px;
+  padding-bottom: 14px;
+}
+
+.add-history-section {
+  border-radius: 15px;
+  padding: 14px;
+}
+
+.add-history-section__title {
+  margin-bottom: 10px;
+}
+
+.cascade-picker {
+  gap: 10px;
+}
+
+.cascade-step {
+  border-color: rgba(213, 226, 240, 0.88);
+  border-radius: 13px;
+  background: #fbfdff;
+  overflow: visible;
+}
+
+.cascade-step summary {
+  display: none;
+}
+
+.cascade-step__body {
+  gap: 9px;
+  border-top: 0;
+  background: transparent;
+  padding: 12px;
+}
+
+.inline-new-row {
+  margin-top: -2px;
+  min-height: 28px;
+}
+
+.compact-form-grid {
+  gap: 8px;
+}
+
+.status-field {
+  grid-column: 1 / -1;
+}
+
+.status-option-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.status-option {
+  min-height: 32px;
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+.add-history-section .field textarea {
+  min-height: 88px;
+}
+
+.add-history-section .field textarea[rows="2"] {
+  min-height: 68px;
+}
+
+@media (max-width: 560px) {
+  .add-history-drawer {
+    padding: 18px 16px 0;
+  }
+
+  .add-history-flow {
+    padding-bottom: 90px;
+  }
+
+  .status-option-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

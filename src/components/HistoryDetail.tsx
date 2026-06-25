@@ -181,6 +181,12 @@ function getFallbackDepartment(categoryId: string) {
 function toReadableLines(text: string) {
   return text
     .split(/\n|(?<=\.)\s+|(?<=다\.)\s*/)
-    .map((line) => line.trim())
+    .map((line) =>
+      line
+        .trim()
+        .replace(/^[-*•]\s+/, '')
+        .replace(/^\d+[.)]\s+/, '')
+        .trim(),
+    )
     .filter(Boolean);
 }

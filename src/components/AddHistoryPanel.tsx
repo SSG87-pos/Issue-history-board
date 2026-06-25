@@ -1,5 +1,5 @@
 import { X } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { type KeyboardEvent, useMemo, useState } from 'react';
 import { getDetailIssuesForGroup, getRecommendedIssueGroups } from '../domain/selectors';
 import type { Category, DetailIssue, HistoryEntry, IssueBoardData, IssueGroup, IssueStatus, Subtopic } from '../domain/types';
 import { STATUS_LABELS } from '../domain/types';
@@ -116,6 +116,27 @@ export function AddHistoryPanel({
   const [remainingRisk, setRemainingRisk] = useState(editingEntry?.remainingRisk ?? '');
   const [referenceUrlText, setReferenceUrlText] = useState(editingEntry?.referenceLinks.join('\n') ?? '');
   const statusOptions = Object.entries(STATUS_LABELS) as [IssueStatus, string][];
+
+  function insertListSeparator(
+    event: KeyboardEvent<HTMLTextAreaElement>,
+    value: string,
+    setValue: (nextValue: string) => void,
+  ) {
+    if (event.key !== 'Enter' || event.shiftKey || event.metaKey || event.ctrlKey || event.altKey) return;
+    event.preventDefault();
+
+    const target = event.currentTarget;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const separator = value.trim().length === 0 && start === 0 ? '- ' : '\n- ';
+    const nextValue = `${value.slice(0, start)}${separator}${value.slice(end)}`;
+    const nextCursor = start + separator.length;
+
+    setValue(nextValue);
+    window.requestAnimationFrame(() => {
+      target.setSelectionRange(nextCursor, nextCursor);
+    });
+  }
 
   function selectCategory(nextCategory: Category) {
     const nextSubtopic = data.subtopics
@@ -264,7 +285,6 @@ export function AddHistoryPanel({
       <div className="drawer__header add-history-drawer__header">
         <div>
           <h2>{isEditing ? '이력 수정' : '이력 추가'}</h2>
-          <p>{isEditing ? '선택한 날짜 기록의 내용을 고칩니다.' : '대상 이슈를 고르고 이번 기록만 적습니다.'}</p>
         </div>
         <button className="icon-button" type="button" onClick={onClose} aria-label="닫기">
           <X size={18} />
@@ -533,18 +553,30 @@ export function AddHistoryPanel({
           </label>
           <label className="field">
             <span>상세 내용</span>
-            <textarea value={details} onChange={(event) => setDetails(event.target.value)} rows={4} />
+            <textarea
+              value={details}
+              onChange={(event) => setDetails(event.target.value)}
+              onKeyDown={(event) => insertListSeparator(event, details, setDetails)}
+              placeholder="- 항목 입력 후 Enter로 다음 항목"
+              rows={4}
+            />
           </label>
           <label className="field">
             <span>향후 계획</span>
-            <textarea value={remainingRisk} onChange={(event) => setRemainingRisk(event.target.value)} rows={3} />
+            <textarea
+              value={remainingRisk}
+              onChange={(event) => setRemainingRisk(event.target.value)}
+              onKeyDown={(event) => insertListSeparator(event, remainingRisk, setRemainingRisk)}
+              placeholder="- 항목 입력 후 Enter로 다음 항목"
+              rows={3}
+            />
           </label>
           <label className="field">
-            <span>첨부 URL</span>
+            <span>첨부 URL (여러 개 가능)</span>
             <textarea
               value={referenceUrlText}
               onChange={(event) => setReferenceUrlText(event.target.value)}
-              placeholder="https://..."
+              placeholder={'https://...\nhttps://...'}
               rows={2}
             />
           </label>
