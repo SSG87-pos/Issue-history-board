@@ -73,6 +73,13 @@ export function AddHistoryPanel({
   const [details, setDetails] = useState(editingEntry?.details ?? '');
   const [remainingRisk, setRemainingRisk] = useState(editingEntry?.remainingRisk ?? '');
   const [referenceUrlText, setReferenceUrlText] = useState(editingEntry?.referenceLinks.join('\n') ?? '');
+  const statusOptions = Object.entries(STATUS_LABELS) as [IssueStatus, string][];
+
+  function selectIssueGroup(issueId: string) {
+    setSelectedIssueGroupId(issueId);
+    setSelectedDetailIssueId('');
+    setUseNewDetailIssue(false);
+  }
 
   function submit() {
     if (!selectedIssueGroup || !summary.trim()) return;
@@ -168,48 +175,63 @@ export function AddHistoryPanel({
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="예: STS, 430, 표면, 시험조건"
+                  placeholder="이슈명, 스티커, 키워드 검색"
                 />
               </label>
 
-              <div className="form-grid">
-                <label className="field">
-                  <span>이슈</span>
-                  <select value={selectedIssueGroup?.id ?? ''} onChange={(event) => setSelectedIssueGroupId(event.target.value)}>
-                    {issueGroups.map((issue) => (
-                      <option key={issue.id} value={issue.id}>
-                        {issue.title}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="field">
-                  <span>세부 항목</span>
-                  <select
-                    disabled={useNewDetailIssue || recommendedDetailIssues.length === 0}
-                    value={selectedDetailIssue?.id ?? ''}
-                    onChange={(event) => {
-                      setUseNewDetailIssue(false);
-                      setSelectedDetailIssueId(event.target.value);
-                    }}
-                  >
-                    {recommendedDetailIssues.map((detailIssue) => (
-                      <option key={detailIssue.id} value={detailIssue.id}>
-                        {detailIssue.title}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+              <div className="add-choice-group">
+                <div className="add-choice-group__header">
+                  <span>이슈 선택</span>
+                  <small>{issueGroups.length}건</small>
+                </div>
+                <div className="add-choice-list issue-choice-list">
+                  {issueGroups.map((issue) => (
+                    <button
+                      className={`add-choice-card ${issue.id === selectedIssueGroup?.id ? 'is-selected' : ''}`}
+                      key={issue.id}
+                      type="button"
+                      onClick={() => selectIssueGroup(issue.id)}
+                    >
+                      <span>{issue.groupLabel}</span>
+                      <strong>{issue.title}</strong>
+                      <small>{issue.currentSummary}</small>
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              <label className="checkbox-field checkbox-field--quiet">
-                <input
-                  type="checkbox"
-                  checked={useNewDetailIssue}
-                  onChange={(event) => setUseNewDetailIssue(event.target.checked)}
-                />
-                <span>새 세부 항목으로 기록합니다.</span>
-              </label>
+              <div className="add-choice-group">
+                <div className="add-choice-group__header">
+                  <span>세부 항목</span>
+                  <small>{useNewDetailIssue ? '새 항목' : `${recommendedDetailIssues.length}건`}</small>
+                </div>
+                <div className="add-choice-list detail-choice-list">
+                  {recommendedDetailIssues.map((detailIssue) => (
+                    <button
+                      className={`add-choice-card ${!useNewDetailIssue && detailIssue.id === selectedDetailIssue?.id ? 'is-selected' : ''}`}
+                      key={detailIssue.id}
+                      type="button"
+                      onClick={() => {
+                        setUseNewDetailIssue(false);
+                        setSelectedDetailIssueId(detailIssue.id);
+                      }}
+                    >
+                      <span>{detailIssue.tags[0] ?? selectedIssueGroup?.groupLabel ?? '세부 항목'}</span>
+                      <strong>{detailIssue.title}</strong>
+                      <small>{detailIssue.currentSummary}</small>
+                    </button>
+                  ))}
+                  <button
+                    className={`add-choice-card add-choice-card--new ${useNewDetailIssue ? 'is-selected' : ''}`}
+                    type="button"
+                    onClick={() => setUseNewDetailIssue(true)}
+                  >
+                    <span>새 항목</span>
+                    <strong>이번 요약으로 새 세부 항목 생성</strong>
+                    <small>기존 항목에 묶기 애매할 때 사용합니다.</small>
+                  </button>
+                </div>
+              </div>
             </>
           )}
         </section>
@@ -224,16 +246,21 @@ export function AddHistoryPanel({
               <span>날짜</span>
               <input type="date" value={date} onChange={(event) => setDate(event.target.value)} />
             </label>
-            <label className="field">
+            <div className="field status-field">
               <span>세부 항목 상태</span>
-              <select value={status} onChange={(event) => setStatus(event.target.value as IssueStatus)}>
-                {Object.entries(STATUS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
+              <div className="status-option-grid" role="group" aria-label="세부 항목 상태">
+                {statusOptions.map(([value, label]) => (
+                  <button
+                    className={`status-option status-${value} ${status === value ? 'is-selected' : ''}`}
+                    key={value}
+                    type="button"
+                    onClick={() => setStatus(value)}
+                  >
                     {label}
-                  </option>
+                  </button>
                 ))}
-              </select>
-            </label>
+              </div>
+            </div>
           </div>
 
           <label className="checkbox-field">
@@ -250,7 +277,7 @@ export function AddHistoryPanel({
             <textarea value={details} onChange={(event) => setDetails(event.target.value)} rows={4} />
           </label>
           <label className="field">
-            <span>남은 리스크</span>
+            <span>향후 계획</span>
             <textarea value={remainingRisk} onChange={(event) => setRemainingRisk(event.target.value)} rows={3} />
           </label>
           <label className="field">
