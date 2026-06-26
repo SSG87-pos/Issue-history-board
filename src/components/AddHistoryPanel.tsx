@@ -570,8 +570,8 @@ export function AddHistoryPanel({
               </div>
             </div>
             <div className="field record-type-field">
-              <span>기록 유형</span>
-              <div className="status-option-grid record-type-grid" role="group" aria-label="기록 유형">
+              <span>유형</span>
+              <div className="status-option-grid record-type-grid" role="group" aria-label="유형">
                 {recordTypeOptions.map(([value, label]) => (
                   <button
                     className={`status-option record-type-option ${recordType === value ? 'is-selected' : ''}`}
