@@ -2018,6 +2018,12 @@ button.dashboard-card,
   display: none;
 }
 
+@media (max-width: 767px) {
+  .admin-panel--data-management {
+    display: none;
+  }
+}
+
 @media (max-width: 1320px) {
   .home-grid {
     grid-template-columns: 1fr;

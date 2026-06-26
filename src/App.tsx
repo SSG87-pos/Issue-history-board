@@ -17,6 +17,7 @@ import { AdminDataPanel } from './components/AdminDataPanel';
 import { HomeDashboard } from './components/HomeDashboard';
 import { SubtopicDetailPage } from './components/SubtopicDetailPage';
 import { deserializeBoardData, loadBoardData, resetBoardData, saveBoardData } from './domain/persistence';
+import { importBoardDataFromXlsx } from './domain/xlsxExchange';
 import {
   getHistoryRowsForSubtopic,
   getLongRunningUnresolvedIssues,
@@ -184,6 +185,16 @@ export function App() {
     setPage('home');
   }
 
+  function handleImportXlsx(file: ArrayBuffer) {
+    const imported = importBoardDataFromXlsx(data, file);
+    const firstSubtopic = imported.subtopics.find((subtopic) => !subtopic.hidden);
+    const nextSubtopicId = firstSubtopic?.id ?? 'sts';
+    setData(imported);
+    setSelectedSubtopicId(nextSubtopicId);
+    setSelectedEntryId(getFirstEntryForSubtopic(imported, nextSubtopicId)?.id);
+    setPage('home');
+  }
+
   function handleReset() {
     const reset = resetBoardData();
     setData(reset);
@@ -277,7 +288,12 @@ export function App() {
             />
           )}
 
-          <AdminDataPanel data={data} onImportJson={handleImportJson} onReset={handleReset} />
+          <AdminDataPanel
+            data={data}
+            onImportJson={handleImportJson}
+            onImportXlsx={handleImportXlsx}
+            onReset={handleReset}
+          />
         </div>
       </section>
 
