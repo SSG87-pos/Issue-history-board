@@ -129,7 +129,7 @@ export function SubtopicDetailPage({
                   style={{ '--phase-flex': phaseCount || 0 } as CSSProperties}
                 >
                   <span>{PHASE_LABELS[phase]}</span>
-                  <strong>{phaseCount > 0 ? `${phaseCount}건` : '없음'}</strong>
+                  {phaseCount > 0 && <strong>{phaseCount}건</strong>}
                 </button>
               );
             })}
