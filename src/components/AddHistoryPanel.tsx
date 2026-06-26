@@ -113,7 +113,7 @@ export function AddHistoryPanel({
   const [phase, setPhase] = useState<IssuePhase>(STATUS_PHASES[initialStatus]);
   const [status, setStatus] = useState<IssueStatus>(initialStatus);
   const [recordType, setRecordType] = useState<IssueRecordType>(editingEntry?.recordType ?? 'action');
-  const [changesStatus, setChangesStatus] = useState(editingEntry?.changesDetailIssueStatus ?? true);
+  const [changesStatus, setChangesStatus] = useState(editingEntry?.changesDetailIssueStatus ?? false);
   const [summary, setSummary] = useState(editingEntry?.summary ?? '');
   const [details, setDetails] = useState(editingEntry?.details ?? '');
   const [remainingRisk, setRemainingRisk] = useState(editingEntry?.remainingRisk ?? '');
@@ -588,7 +588,7 @@ export function AddHistoryPanel({
 
           <label className="checkbox-field">
             <input type="checkbox" checked={changesStatus} onChange={(event) => setChangesStatus(event.target.checked)} />
-            <span>이 기록의 세부 단계를 이슈 상태에도 반영합니다.</span>
+            <span>필요할 때만 이 기록의 세부 단계를 이슈 대표 상태에도 반영합니다.</span>
           </label>
 
           <label className="field">
