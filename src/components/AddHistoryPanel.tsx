@@ -4,6 +4,8 @@ import { getDetailIssuesForGroup, getRecommendedIssueGroups } from '../domain/se
 import type { Category, DetailIssue, HistoryEntry, IssueBoardData, IssueGroup, IssuePhase, IssueRecordType, IssueStatus, Subtopic } from '../domain/types';
 import { DEFAULT_STATUS_BY_PHASE, PHASE_LABELS, PHASE_STATUS_OPTIONS, RECORD_TYPE_LABELS, STATUS_LABELS, STATUS_PHASES } from '../domain/types';
 
+const CATEGORY_ICON_OPTIONS = ['📌', '🧵', '📁', '🧪', '🤝', '🏭', '🔬', '⚙️', '🛠️', '📊', '🔒', '💡', '🧭', '🧾'];
+
 type AddHistoryPanelProps = {
   data: IssueBoardData;
   categoryId: string;
@@ -22,7 +24,7 @@ type AddHistoryPanelProps = {
       subtopic?: Subtopic;
     },
   ) => void;
-  onUpdateEntry?: (entry: HistoryEntry) => void;
+  onUpdateEntry?: (entry: HistoryEntry, detailIssue?: DetailIssue) => void;
   onClose: () => void;
 };
 
@@ -41,6 +43,9 @@ export function AddHistoryPanel({
   const initialIssueGroup = data.issueGroups.find(
     (issue) => issue.id === (editingEntry?.issueGroupId ?? initialIssueGroupId),
   );
+  const initialDetailIssue = data.detailIssues.find(
+    (detailIssue) => detailIssue.id === (editingEntry?.detailIssueId ?? initialDetailIssueId),
+  );
   const initialCategoryId = initialIssueGroup?.categoryId ?? categoryId ?? data.categories[0]?.id ?? '';
   const initialSubtopicId =
     initialIssueGroup?.subtopicId ??
@@ -52,6 +57,8 @@ export function AddHistoryPanel({
   const [query, setQuery] = useState('');
   const [useNewCategory, setUseNewCategory] = useState(false);
   const [newCategoryLabel, setNewCategoryLabel] = useState('');
+  const [newCategoryIcon, setNewCategoryIcon] = useState(CATEGORY_ICON_OPTIONS[0]);
+  const [customCategoryIconInput, setCustomCategoryIconInput] = useState('');
   const [useNewSubtopic, setUseNewSubtopic] = useState(false);
   const [newSubtopicLabel, setNewSubtopicLabel] = useState('');
   const [useNewIssueGroup, setUseNewIssueGroup] = useState(false);
@@ -93,13 +100,26 @@ export function AddHistoryPanel({
       selectedIssueGroup.title,
       selectedIssueGroup.currentSummary,
       selectedIssueGroup.groupLabel,
+      selectedIssueGroup.ownerName,
+      selectedIssueGroup.ownerResearchGroup,
+      selectedIssueGroup.relatedDepartment,
       ...selectedIssueGroup.tags,
     ]
       .join(' ')
       .toLowerCase();
     if (groupSearchableText.includes(normalizedQuery)) return candidates;
     return candidates.filter((detailIssue) =>
-      [detailIssue.title, detailIssue.currentSummary, ...detailIssue.tags].join(' ').toLowerCase().includes(normalizedQuery),
+      [
+        detailIssue.title,
+        detailIssue.currentSummary,
+        detailIssue.ownerName,
+        detailIssue.ownerResearchGroup,
+        detailIssue.relatedDepartment,
+        ...detailIssue.tags,
+      ]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalizedQuery),
     );
   }, [data, query, selectedIssueGroup, useNewIssueGroup]);
   const [selectedDetailIssueId, setSelectedDetailIssueId] = useState<string>(
@@ -118,6 +138,13 @@ export function AddHistoryPanel({
   const [details, setDetails] = useState(editingEntry?.details ?? '');
   const [remainingRisk, setRemainingRisk] = useState(editingEntry?.remainingRisk ?? '');
   const [referenceUrlText, setReferenceUrlText] = useState(editingEntry?.referenceLinks.join('\n') ?? '');
+  const [ownerName, setOwnerName] = useState(initialDetailIssue?.ownerName ?? initialIssueGroup?.ownerName ?? '');
+  const [ownerDepartment, setOwnerDepartment] = useState(
+    initialDetailIssue?.ownerResearchGroup ?? initialIssueGroup?.ownerResearchGroup ?? '',
+  );
+  const [relatedDepartment, setRelatedDepartment] = useState(
+    initialDetailIssue?.relatedDepartment ?? initialIssueGroup?.relatedDepartment ?? '',
+  );
   const phaseOptions = Object.entries(PHASE_LABELS) as [IssuePhase, string][];
   const statusOptions = PHASE_STATUS_OPTIONS[phase].map((value) => [value, STATUS_LABELS[value]] as [IssueStatus, string]);
   const recordTypeOptions = Object.entries(RECORD_TYPE_LABELS) as [IssueRecordType, string][];
@@ -176,10 +203,23 @@ export function AddHistoryPanel({
   }
 
   function selectIssueGroup(issueId: string) {
+    const issue = data.issueGroups.find((item) => item.id === issueId);
     setSelectedIssueGroupId(issueId);
     setUseNewIssueGroup(false);
     setSelectedDetailIssueId('');
     setUseNewDetailIssue(false);
+    setOwnerName(issue?.ownerName ?? '');
+    setOwnerDepartment(issue?.ownerResearchGroup ?? '');
+    setRelatedDepartment(issue?.relatedDepartment ?? '');
+  }
+
+  function selectDetailIssue(detailIssueId: string) {
+    const detailIssue = data.detailIssues.find((item) => item.id === detailIssueId);
+    setUseNewDetailIssue(false);
+    setSelectedDetailIssueId(detailIssueId);
+    setOwnerName(detailIssue?.ownerName ?? selectedIssueGroup?.ownerName ?? '');
+    setOwnerDepartment(detailIssue?.ownerResearchGroup ?? selectedIssueGroup?.ownerResearchGroup ?? '');
+    setRelatedDepartment(detailIssue?.relatedDepartment ?? selectedIssueGroup?.relatedDepartment ?? '');
   }
 
   function submit() {
@@ -191,6 +231,14 @@ export function AddHistoryPanel({
       .filter(Boolean);
 
     if (editingEntry) {
+      const updatedDetailIssue = selectedDetailIssue
+        ? {
+            ...selectedDetailIssue,
+            ownerName: ownerName.trim() || undefined,
+            ownerResearchGroup: ownerDepartment.trim() || undefined,
+            relatedDepartment: relatedDepartment.trim() || undefined,
+          }
+        : undefined;
       onUpdateEntry?.({
         ...editingEntry,
         date,
@@ -203,7 +251,7 @@ export function AddHistoryPanel({
         blockName: STATUS_LABELS[status],
         referenceLinks,
         updatedAt: now,
-      });
+      }, updatedDetailIssue);
       return;
     }
 
@@ -214,6 +262,7 @@ export function AddHistoryPanel({
           label: newCategoryLabel.trim() || '새 대분류',
           description: `${newCategoryLabel.trim() || '새 대분류'} 관련 이슈`,
           order: data.categories.length + 1,
+          icon: newCategoryIcon.trim() || CATEGORY_ICON_OPTIONS[0],
         }
       : selectedCategory;
     if (!category) return;
@@ -242,7 +291,9 @@ export function AddHistoryPanel({
           tags: [subtopic.label, newIssueLabel.trim()].filter(Boolean),
           groupLabel: newIssueLabel.trim() || subtopic.label,
           groupColorTone: 'neutral',
-          ownerName: '관리자',
+          ownerName: ownerName.trim() || undefined,
+          ownerResearchGroup: ownerDepartment.trim() || undefined,
+          relatedDepartment: relatedDepartment.trim() || undefined,
           sensitive: false,
           archived: false,
         }
@@ -259,11 +310,18 @@ export function AddHistoryPanel({
           latestUpdatedAt: date,
           currentSummary: summary.trim(),
           tags: issueGroup.tags.slice(0, 2),
-          ownerName: '관리자',
+          ownerName: ownerName.trim() || undefined,
+          ownerResearchGroup: ownerDepartment.trim() || undefined,
+          relatedDepartment: relatedDepartment.trim() || undefined,
           needsReview: false,
           archived: false,
         }
-      : selectedDetailIssue;
+      : {
+          ...selectedDetailIssue,
+          ownerName: ownerName.trim() || undefined,
+          ownerResearchGroup: ownerDepartment.trim() || undefined,
+          relatedDepartment: relatedDepartment.trim() || undefined,
+        };
 
     onAddEntry(
       issueGroup,
@@ -323,7 +381,9 @@ export function AddHistoryPanel({
                 <details className="cascade-step" open>
                   <summary>
                     <span>대분류</span>
-                    <strong>{useNewCategory ? newCategoryLabel || '새 대분류' : selectedCategory?.label ?? '선택 필요'}</strong>
+                    <strong>
+                      {useNewCategory ? `${newCategoryIcon} ${newCategoryLabel || '새 대분류'}` : selectedCategory?.label ?? '선택 필요'}
+                    </strong>
                   </summary>
                   <div className="cascade-step__body">
                     <label className="field">
@@ -357,10 +417,42 @@ export function AddHistoryPanel({
                       <span>새 대분류로 기록</span>
                     </label>
                     {useNewCategory && (
-                      <label className="field">
-                        <span>새 대분류명</span>
-                        <input value={newCategoryLabel} onChange={(event) => setNewCategoryLabel(event.target.value)} placeholder="예: 표면/품질" />
-                      </label>
+                      <>
+                        <label className="field">
+                          <span>새 대분류명</span>
+                          <input value={newCategoryLabel} onChange={(event) => setNewCategoryLabel(event.target.value)} placeholder="예: 표면/품질" />
+                        </label>
+                        <div className="field">
+                          <span>이모지</span>
+                          <div className="emoji-picker" aria-label="새 대분류 이모지 선택">
+                            {CATEGORY_ICON_OPTIONS.map((icon) => (
+                              <button
+                                aria-pressed={newCategoryIcon === icon}
+                                className={`emoji-option ${newCategoryIcon === icon ? 'is-selected' : ''}`}
+                                key={icon}
+                                type="button"
+                                onClick={() => {
+                                  setNewCategoryIcon(icon);
+                                  setCustomCategoryIconInput('');
+                                }}
+                              >
+                                {icon}
+                              </button>
+                            ))}
+                          </div>
+                          <input
+                            aria-label="이모지 직접 입력"
+                            className="emoji-custom-input"
+                            maxLength={4}
+                            placeholder="직접 입력"
+                            value={customCategoryIconInput}
+                            onChange={(event) => {
+                              setCustomCategoryIconInput(event.target.value);
+                              setNewCategoryIcon(event.target.value || CATEGORY_ICON_OPTIONS[0]);
+                            }}
+                          />
+                        </div>
+                      </>
                     )}
                   </div>
                 </details>
@@ -426,7 +518,8 @@ export function AddHistoryPanel({
                 <input
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
-                  placeholder="이슈명, 스티커, 키워드"
+                  placeholder="이슈명, 담당자, 담당부서, 키워드"
+                  aria-label="이슈 통합 검색"
                   disabled={useNewIssueGroup}
                 />
               </label>
@@ -490,10 +583,7 @@ export function AddHistoryPanel({
                       <span>기존 세부 항목</span>
                       <select
                         value={selectedDetailIssueId}
-                        onChange={(event) => {
-                          setUseNewDetailIssue(false);
-                          setSelectedDetailIssueId(event.target.value);
-                        }}
+                        onChange={(event) => selectDetailIssue(event.target.value)}
                         disabled={useNewDetailIssue || useNewIssueGroup || !selectedIssueGroup}
                       >
                         <option value="">세부 항목을 선택하세요</option>
@@ -532,6 +622,39 @@ export function AddHistoryPanel({
         <section className="add-history-section">
           <div className="add-history-section__title">
             <span>{isEditing ? '2' : '3'}</span>
+            <strong>세부 카드 담당 정보</strong>
+          </div>
+          <div className="form-grid compact-form-grid">
+            <label className="field">
+              <span>담당자</span>
+              <input
+                value={ownerName}
+                onChange={(event) => setOwnerName(event.target.value)}
+                placeholder="예: 김연구, 박연구"
+              />
+            </label>
+            <label className="field">
+              <span>담당부서</span>
+              <input
+                value={ownerDepartment}
+                onChange={(event) => setOwnerDepartment(event.target.value)}
+                placeholder="예: 표면품질연구그룹, STS솔루션팀"
+              />
+            </label>
+            <label className="field">
+              <span>유관부서</span>
+              <input
+                value={relatedDepartment}
+                onChange={(event) => setRelatedDepartment(event.target.value)}
+                placeholder="예: 냉연품질보증섹션, 분석시험센터"
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="add-history-section">
+          <div className="add-history-section__title">
+            <span>{isEditing ? '3' : '4'}</span>
             <strong>기록 내용</strong>
           </div>
           <div className="form-grid">

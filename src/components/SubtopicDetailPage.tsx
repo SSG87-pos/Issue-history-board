@@ -159,6 +159,7 @@ export function SubtopicDetailPage({
         <div className="history-list-anchor" ref={listAnchorRef}>
           <HistoryList
             activeDashboardFilterLabel={dashboardFilter === 'all' ? undefined : getDashboardFilterLabel(dashboardFilter)}
+            detailIssues={data.detailIssues}
             entries={visibleEntries}
             issues={visibleIssues}
             selectedEntryId={selectedEntry?.id}

@@ -7,6 +7,7 @@ const unresolvedStatuses = new Set<IssueGroup['status']>([
   'verification',
   'on_hold',
 ]);
+export const LONG_RUNNING_DELAY_DAYS = 30;
 
 export type SubtopicSummary = {
   subtopic: Subtopic;
@@ -51,8 +52,19 @@ export function getHistoryRowsForSubtopic(data: IssueBoardData, subtopicId: stri
 
 export function getLongRunningUnresolvedIssues(data: IssueBoardData): IssueGroup[] {
   return data.issueGroups
-    .filter((issue) => !issue.archived && unresolvedStatuses.has(issue.status))
+    .filter(
+      (issue) =>
+        !issue.archived &&
+        unresolvedStatuses.has(issue.status) &&
+        getElapsedDays(issue.firstOccurredAt) >= LONG_RUNNING_DELAY_DAYS,
+    )
     .sort((a, b) => a.firstOccurredAt.localeCompare(b.firstOccurredAt));
+}
+
+function getElapsedDays(date: string) {
+  const startedAt = new Date(`${date}T00:00:00+09:00`).getTime();
+  const now = Date.now();
+  return Math.max(1, Math.ceil((now - startedAt) / 86_400_000));
 }
 
 export function getDetailIssuesForGroup(data: IssueBoardData, issueGroupId: string) {
@@ -86,7 +98,18 @@ function scoreIssue(issue: IssueGroup, query: string): number {
   const normalizedQuery = normalizeText(query);
   if (!normalizedQuery) return 0;
 
-  const haystack = normalizeText([issue.title, issue.currentSummary, ...issue.tags].join(' '));
+  const haystack = normalizeText([
+    issue.title,
+    issue.currentSummary,
+    issue.groupLabel,
+    issue.ownerName,
+    issue.ownerResearchGroup,
+    issue.relatedDepartment,
+    issue.relatedEquipment,
+    issue.relatedCustomer,
+    issue.priorityLabel,
+    ...issue.tags,
+  ].join(' '));
   let score = 0;
   for (const token of normalizedQuery.match(/.{1,2}/g) ?? []) {
     if (haystack.includes(token)) score += 1;

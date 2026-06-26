@@ -30,7 +30,7 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetai
   const groupedTimeline = getGroupedTimeline(data, selectedIssue.id);
   const phase = STATUS_PHASES[selectedIssue.status];
   const ownerName = detailIssue?.ownerName ?? selectedIssue.ownerName ?? selectedEntry.authorName ?? '-';
-  const ownerResearchGroup = detailIssue?.ownerResearchGroup ?? selectedIssue.ownerResearchGroup ?? getFallbackResearchGroup(selectedIssue.categoryId);
+  const ownerDepartment = detailIssue?.ownerResearchGroup ?? selectedIssue.ownerResearchGroup ?? getFallbackResearchGroup(selectedIssue.categoryId);
   const relatedDepartment = detailIssue?.relatedDepartment ?? selectedIssue.relatedDepartment ?? getFallbackDepartment(selectedIssue.categoryId);
   const priorityLabel = detailIssue?.priorityLabel ?? selectedIssue.priorityLabel ?? '보통';
   const detailLines = toReadableLines(selectedEntry.details);
@@ -82,8 +82,8 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetai
           <strong>{ownerName}</strong>
         </div>
         <div>
-          <span>담당연구그룹</span>
-          <strong>{ownerResearchGroup}</strong>
+          <span>담당부서</span>
+          <strong>{ownerDepartment}</strong>
         </div>
         <div>
           <span>유관부서</span>

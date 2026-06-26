@@ -29,7 +29,7 @@ const EXCEL_COLUMNS = [
   '향후 계획',
   '이슈 상태 반영',
   '담당자',
-  '담당연구그룹',
+  '담당부서',
   '유관부서',
   '첨부 URL',
   '이력ID',
@@ -87,9 +87,9 @@ function boardDataToRows(data: IssueBoardData): string[][] {
           '상세 내용': entry.details,
           '향후 계획': entry.remainingRisk,
           '이슈 상태 반영': entry.changesDetailIssueStatus ? '예' : '아니오',
-          담당자: issue?.ownerName ?? detail?.ownerName ?? entry.authorName ?? '',
-          담당연구그룹: issue?.ownerResearchGroup ?? detail?.ownerResearchGroup ?? '',
-          유관부서: issue?.relatedDepartment ?? detail?.relatedDepartment ?? '',
+          담당자: detail?.ownerName ?? issue?.ownerName ?? entry.authorName ?? '',
+          담당부서: detail?.ownerResearchGroup ?? issue?.ownerResearchGroup ?? '',
+          유관부서: detail?.relatedDepartment ?? issue?.relatedDepartment ?? '',
           '첨부 URL': entry.referenceLinks.join('\n'),
           이력ID: entry.id,
         })[column],
@@ -375,6 +375,7 @@ function findOrCreateCategory(data: IssueBoardData, label: string, createId: () 
     label,
     description: `${label} 관련 이슈`,
     order: data.categories.length + 1,
+    icon: '📌',
   };
   data.categories.push(category);
   return category;
@@ -413,7 +414,7 @@ function findOrCreateIssueGroup(
   if (found) {
     found.groupLabel = row['업무 라벨'].trim() || found.groupLabel;
     found.ownerName = row.담당자.trim() || found.ownerName;
-    found.ownerResearchGroup = row.담당연구그룹.trim() || found.ownerResearchGroup;
+    found.ownerResearchGroup = row.담당부서.trim() || found.ownerResearchGroup;
     found.relatedDepartment = row.유관부서.trim() || found.relatedDepartment;
     return found;
   }
@@ -432,7 +433,7 @@ function findOrCreateIssueGroup(
     groupLabel: row['업무 라벨'].trim() || subtopic.label,
     groupColorTone: 'neutral' as const,
     ownerName: row.담당자.trim() || undefined,
-    ownerResearchGroup: row.담당연구그룹.trim() || undefined,
+    ownerResearchGroup: row.담당부서.trim() || undefined,
     relatedDepartment: row.유관부서.trim() || undefined,
     sensitive: false,
     archived: false,
@@ -453,7 +454,7 @@ function findOrCreateDetailIssue(
   );
   if (found) {
     found.ownerName = row.담당자.trim() || found.ownerName;
-    found.ownerResearchGroup = row.담당연구그룹.trim() || found.ownerResearchGroup;
+    found.ownerResearchGroup = row.담당부서.trim() || found.ownerResearchGroup;
     found.relatedDepartment = row.유관부서.trim() || found.relatedDepartment;
     return found;
   }
@@ -468,7 +469,7 @@ function findOrCreateDetailIssue(
     currentSummary: row.요약.trim(),
     tags: issue.tags.slice(0, 2),
     ownerName: row.담당자.trim() || issue.ownerName,
-    ownerResearchGroup: row.담당연구그룹.trim() || issue.ownerResearchGroup,
+    ownerResearchGroup: row.담당부서.trim() || issue.ownerResearchGroup,
     relatedDepartment: row.유관부서.trim() || issue.relatedDepartment,
     needsReview: false,
     archived: false,
@@ -524,8 +525,9 @@ function readRecordType(value: string): IssueRecordType {
 function rowFromCells(header: string[], cells: string[]): SheetRow | undefined {
   const row = Object.fromEntries(EXCEL_COLUMNS.map((column) => [column, ''])) as SheetRow;
   header.forEach((column, index) => {
-    if (EXCEL_COLUMNS.includes(column as ExcelColumn)) {
-      row[column as ExcelColumn] = cells[index] ?? '';
+    const normalizedColumn = column === '담당연구그룹' ? '담당부서' : column;
+    if (EXCEL_COLUMNS.includes(normalizedColumn as ExcelColumn)) {
+      row[normalizedColumn as ExcelColumn] = cells[index] ?? '';
     }
   });
 

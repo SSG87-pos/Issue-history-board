@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { AddHistoryPanel } from './components/AddHistoryPanel';
-import { AdminDataPanel } from './components/AdminDataPanel';
+import { AdminPage } from './components/AdminPage';
 import { HomeDashboard } from './components/HomeDashboard';
 import { SubtopicDetailPage } from './components/SubtopicDetailPage';
 import { deserializeBoardData, loadBoardData, resetBoardData, saveBoardData } from './domain/persistence';
@@ -35,7 +35,7 @@ export function App() {
   const [selectedEntryId, setSelectedEntryId] = useState<string | undefined>(() =>
     getFirstEntryForSubtopic(loadBoardData(), 'sts')?.id,
   );
-  const [page, setPage] = useState<'home' | 'subtopic'>('home');
+  const [page, setPage] = useState<'home' | 'subtopic' | 'admin'>('home');
   const [historyPanelMode, setHistoryPanelMode] = useState<'add' | 'edit' | null>(null);
   const [editingEntryId, setEditingEntryId] = useState<string | undefined>();
 
@@ -105,6 +105,9 @@ export function App() {
             item.id === detailIssue.id
               ? {
                   ...item,
+                  ownerName: detailIssue.ownerName,
+                  ownerResearchGroup: detailIssue.ownerResearchGroup,
+                  relatedDepartment: detailIssue.relatedDepartment,
                   status: entry.changesDetailIssueStatus ? entry.status : item.status,
                   latestUpdatedAt: entry.date,
                   currentSummary: entry.summary,
@@ -133,7 +136,7 @@ export function App() {
     setHistoryPanelMode(null);
   }
 
-  function handleUpdateEntry(entry: HistoryEntry) {
+  function handleUpdateEntry(entry: HistoryEntry, detailIssue?: DetailIssue) {
     setData((current) => {
       const nextHistoryEntries = current.historyEntries.map((item) => (item.id === entry.id ? entry : item));
       const latestForIssue = nextHistoryEntries
@@ -150,6 +153,13 @@ export function App() {
           item.id === entry.detailIssueId && latestForDetail
             ? {
                 ...item,
+                ...(detailIssue && item.id === detailIssue.id
+                  ? {
+                      ownerName: detailIssue.ownerName,
+                      ownerResearchGroup: detailIssue.ownerResearchGroup,
+                      relatedDepartment: detailIssue.relatedDepartment,
+                    }
+                  : {}),
                 status: latestForDetail.changesDetailIssueStatus ? latestForDetail.status : item.status,
                 latestUpdatedAt: latestForDetail.date,
                 currentSummary: latestForDetail.summary,
@@ -223,9 +233,9 @@ export function App() {
             <span className="menu-icon" aria-hidden="true"><FileText size={16} strokeWidth={2.2} /></span>
             <span className="menu-label">보고서</span>
           </button>
-          <button type="button">
+          <button className={page === 'admin' ? 'is-active' : ''} type="button" onClick={() => setPage('admin')}>
             <span className="menu-icon" aria-hidden="true"><Settings size={16} strokeWidth={2.2} /></span>
-            <span className="menu-label">설정</span>
+            <span className="menu-label">관리자</span>
           </button>
         </nav>
         <div className="sidebar-user">
@@ -273,7 +283,7 @@ export function App() {
               selectedSubtopicId={selectedSubtopicId}
               onSelectSubtopic={openSubtopic}
             />
-          ) : (
+          ) : page === 'subtopic' ? (
             <SubtopicDetailPage
               data={data}
               category={selectedCategory}
@@ -286,14 +296,14 @@ export function App() {
               onOpenAdd={openAddPanel}
               onOpenEdit={openEditPanel}
             />
+          ) : (
+            <AdminPage
+              data={data}
+              onImportJson={handleImportJson}
+              onImportXlsx={handleImportXlsx}
+              onReset={handleReset}
+            />
           )}
-
-          <AdminDataPanel
-            data={data}
-            onImportJson={handleImportJson}
-            onImportXlsx={handleImportXlsx}
-            onReset={handleReset}
-          />
         </div>
       </section>
 

@@ -2,10 +2,10 @@ import type { IssueBoardData } from './types';
 
 export const seedData: IssueBoardData = {
   categories: [
-    { id: 'grade-product', label: '강종/제품', description: '강종, 제품, 적용 조건 관련 이슈', order: 1 },
-    { id: 'investment-project', label: '투자/과제', description: '투자, 과제, 예산, 일정 관련 이슈', order: 2 },
-    { id: 'equipment-test', label: '설비/시험', description: '시험 장비, 분석, Pilot, 점검 관련 이슈', order: 3 },
-    { id: 'system-operation', label: '제도/운영', description: '운영 기준, 승인 체계, 협업 절차 관련 이슈', order: 4 },
+    { id: 'grade-product', label: '강종/제품', description: '강종, 제품, 적용 조건 관련 이슈', order: 1, icon: '🧵' },
+    { id: 'investment-project', label: '투자/과제', description: '투자, 과제, 예산, 일정 관련 이슈', order: 2, icon: '📁' },
+    { id: 'equipment-test', label: '설비/시험', description: '시험 장비, 분석, Pilot, 점검 관련 이슈', order: 3, icon: '🧪' },
+    { id: 'system-operation', label: '제도/운영', description: '운영 기준, 승인 체계, 협업 절차 관련 이슈', order: 4, icon: '🤝' },
   ],
   subtopics: [
     { id: 'hpf', categoryId: 'grade-product', label: 'HPF', order: 1 },

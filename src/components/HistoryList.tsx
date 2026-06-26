@@ -1,12 +1,13 @@
 import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import type { HistoryEntry, IssueGroup } from '../domain/types';
+import type { DetailIssue, HistoryEntry, IssueGroup } from '../domain/types';
 import { PHASE_LABELS, RECORD_TYPE_LABELS, STATUS_PHASES } from '../domain/types';
 
 const PAGE_SIZE = 10;
 
 type HistoryListProps = {
   activeDashboardFilterLabel?: string;
+  detailIssues: DetailIssue[];
   entries: HistoryEntry[];
   issues: IssueGroup[];
   selectedEntryId?: string;
@@ -16,6 +17,7 @@ type HistoryListProps = {
 
 export function HistoryList({
   activeDashboardFilterLabel,
+  detailIssues,
   entries,
   issues,
   selectedEntryId,
@@ -27,6 +29,7 @@ export function HistoryList({
   const [viewMode, setViewMode] = useState<'date' | 'issue'>('date');
   const [pageIndex, setPageIndex] = useState(0);
   const issueById = useMemo(() => new Map(issues.map((issue) => [issue.id, issue])), [issues]);
+  const detailIssueById = useMemo(() => new Map(detailIssues.map((detailIssue) => [detailIssue.id, detailIssue])), [detailIssues]);
   const entriesByIssueId = useMemo(() => {
     const map = new Map<string, HistoryEntry[]>();
     for (const entry of entries) {
@@ -45,23 +48,44 @@ export function HistoryList({
     const normalizedQuery = query.trim().toLowerCase();
     return entries.filter((entry) => {
       const issue = issueById.get(entry.issueGroupId);
+      const detailIssue = detailIssueById.get(entry.detailIssueId);
       if (openOnly && issue?.status === 'resolved') return false;
       if (!normalizedQuery) return true;
       const searchableText = [
         entry.date,
         entry.summary,
         entry.details,
+        entry.remainingRisk,
         entry.status,
         entry.recordType ? RECORD_TYPE_LABELS[entry.recordType] : '',
+        entry.blockName,
+        entry.authorName,
+        ...entry.referenceLinks,
         issue?.title,
+        issue?.currentSummary,
         issue?.groupLabel,
+        issue?.ownerName,
+        issue?.ownerResearchGroup,
+        issue?.relatedDepartment,
+        issue?.relatedEquipment,
+        issue?.relatedCustomer,
+        issue?.priorityLabel,
         ...(issue?.tags ?? []),
+        detailIssue?.title,
+        detailIssue?.currentSummary,
+        detailIssue?.ownerName,
+        detailIssue?.ownerResearchGroup,
+        detailIssue?.relatedDepartment,
+        detailIssue?.relatedEquipment,
+        detailIssue?.relatedCustomer,
+        detailIssue?.priorityLabel,
+        ...(detailIssue?.tags ?? []),
       ]
         .join(' ')
         .toLowerCase();
       return searchableText.includes(normalizedQuery);
     });
-  }, [entries, issueById, openOnly, query]);
+  }, [detailIssueById, entries, issueById, openOnly, query]);
   const filteredIssues = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return issues
@@ -72,13 +96,41 @@ export function HistoryList({
       .filter(({ issue, issueEntries }) => {
         if (openOnly && issue.status === 'resolved') return false;
         if (!normalizedQuery) return true;
+        const issueDetailIssues = detailIssues.filter((detailIssue) => detailIssue.issueGroupId === issue.id);
         const searchableText = [
           issue.title,
           issue.currentSummary,
           issue.groupLabel,
           issue.status,
+          issue.ownerName,
+          issue.ownerResearchGroup,
+          issue.relatedDepartment,
+          issue.relatedEquipment,
+          issue.relatedCustomer,
+          issue.priorityLabel,
           ...issue.tags,
-          ...issueEntries.flatMap((entry) => [entry.summary, entry.details, entry.date, entry.recordType ? RECORD_TYPE_LABELS[entry.recordType] : '']),
+          ...issueDetailIssues.flatMap((detailIssue) => [
+            detailIssue.title,
+            detailIssue.currentSummary,
+            detailIssue.ownerName,
+            detailIssue.ownerResearchGroup,
+            detailIssue.relatedDepartment,
+            detailIssue.relatedEquipment,
+            detailIssue.relatedCustomer,
+            detailIssue.priorityLabel,
+            ...detailIssue.tags,
+          ]),
+          ...issueEntries.flatMap((entry) => [
+            entry.summary,
+            entry.details,
+            entry.remainingRisk,
+            entry.date,
+            entry.status,
+            entry.blockName,
+            entry.authorName,
+            entry.recordType ? RECORD_TYPE_LABELS[entry.recordType] : '',
+            ...entry.referenceLinks,
+          ]),
         ]
           .join(' ')
           .toLowerCase();
@@ -89,7 +141,7 @@ export function HistoryList({
         const bLatest = b.issueEntries[0]?.date ?? b.issue.latestUpdatedAt;
         return bLatest.localeCompare(aLatest);
       });
-  }, [entriesByIssueId, issues, openOnly, query]);
+  }, [detailIssues, entriesByIssueId, issues, openOnly, query]);
   const datePageCount = Math.max(1, Math.ceil(filteredEntries.length / PAGE_SIZE));
   const visibleEntries = filteredEntries.slice(pageIndex * PAGE_SIZE, pageIndex * PAGE_SIZE + PAGE_SIZE);
   const pageStart = filteredEntries.length === 0 ? 0 : pageIndex * PAGE_SIZE + 1;
@@ -134,6 +186,7 @@ export function HistoryList({
             type="search"
             value={query}
             placeholder="검색"
+            aria-label="통합 검색"
             onChange={(event) => setQuery(event.target.value)}
           />
         </label>
@@ -222,7 +275,7 @@ export function HistoryList({
                 <p>{issue.currentSummary}</p>
                 <div className="issue-group-row__footer">
                   <span>최근 {latestEntry?.date ?? issue.latestUpdatedAt}</span>
-                  <span>{issue.ownerName ?? '담당자 미정'}</span>
+                  <span>{issue.ownerName ?? '담당자 미정'} · {issue.ownerResearchGroup ?? '담당부서 미정'}</span>
                 </div>
               </button>
             );

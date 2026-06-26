@@ -1,5 +1,5 @@
 import { Info } from 'lucide-react';
-import type { SubtopicSummary } from '../domain/selectors';
+import { LONG_RUNNING_DELAY_DAYS, type SubtopicSummary } from '../domain/selectors';
 import type { Category, IssueGroup, Subtopic } from '../domain/types';
 
 type HomeDashboardProps = {
@@ -48,7 +48,7 @@ export function HomeDashboard({
             .slice()
             .sort((a, b) => a.order - b.order)
             .map((category) => {
-              const categoryIcon = categoryIconById.get(category.id) ?? '📌';
+              const categoryIcon = category.icon ?? categoryIconById.get(category.id) ?? '📌';
 
               return (
                 <article className="category-card" key={category.id}>
@@ -88,10 +88,13 @@ export function HomeDashboard({
 
       <aside className="side-panel" aria-label="장기 미해결 이슈">
         <div className="side-panel__title">
-          <h2>
-            처리 지연 이슈
-            <Info size={14} />
-          </h2>
+          <div>
+            <h2>
+              처리 지연 이슈
+              <Info size={14} />
+              <span className="side-panel__caption">{LONG_RUNNING_DELAY_DAYS}일 이상 미해결</span>
+            </h2>
+          </div>
           <button type="button">전체 보기</button>
         </div>
         <div className="long-running-list">
@@ -108,6 +111,7 @@ export function HomeDashboard({
               </p>
             </div>
           ))}
+          {longRunningIssues.length === 0 && <p className="empty-list">30일 이상 지연 중인 이슈가 없습니다.</p>}
         </div>
 
         <div className="mini-chart" aria-label="대분류별 미해결 현황">

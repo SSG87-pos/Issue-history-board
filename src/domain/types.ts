@@ -58,6 +58,7 @@ export type Category = {
   label: string;
   description: string;
   order: number;
+  icon?: string;
 };
 
 export type Subtopic = {
