@@ -5,6 +5,7 @@
 - [ ] Browser QA: `http://127.0.0.1:5173/`에서 홈, STS 상세, 이력 목록, 이슈별 모음, 이력 추가/수정 drawer를 다시 훑는다.
 - [ ] Pages QA: `gh-pages` 브랜치 배포 후 `https://ssg87-pos.github.io/Issue-history-board/`에서 fallback 시연 데이터가 바로 보이는지 확인한다.
 - [ ] Design guardrail QA: 새 디자인 수정 전 `docs/design-readability-refresh.md`의 `Do Not Revert` 항목을 먼저 확인한다.
+- [ ] Docs QA: 다음 작업 전 `docs/current-ui-decisions.md`, `docs/design-readability-refresh.md`, `docs/research-history-board-summary.md`, `HANDOFF.md`의 역할이 겹치거나 충돌하지 않는지 확인한다.
 - [ ] Detail QA: `향후 계획`은 보이고 독립 `다음 확인일` 블록은 없는지 확인한다.
 - [ ] Timeline QA: 같은 이슈의 `이력 목록`에서 선택 행 배경, 점, 날짜가 상태색을 따르는지 확인한다.
 - [ ] Selection QA: 사이드바와 하위 주제 카드 선택 상태가 왼쪽 세로줄이나 딱딱한 파란 박스로 보이지 않는지 확인한다.
@@ -16,7 +17,7 @@
 
 - [ ] `src/styles.css`의 반복 override 블록을 안전하게 정리할 수 있는지 검토한다. 단, 사용자가 보는 최신 디자인을 먼저 스크린샷으로 확인한 뒤 진행한다.
 - [x] `AddHistoryPanel`의 visible label도 `향후 계획` 기준으로 완전히 맞는지 확인한다.
-- [ ] 날짜별 이력과 이슈별 모음의 스티커 태그가 너무 튀거나 사라지지 않는지 추가 샘플 데이터로 점검한다.
+- [ ] 날짜별 이력과 이슈별 모음의 업무 라벨 태그가 너무 튀거나 사라지지 않는지 추가 샘플 데이터로 점검한다.
 - [ ] 관리자 모드에서 대분류/하위 주제/이슈/세부 항목 마스터 데이터를 수정 관리하는 화면을 설계한다.
 - [ ] 관리자 모드에서 세부 항목 상태 옵션을 추가/삭제/정렬하는 마스터 관리 화면을 설계한다.
 - [ ] 관리자 모드에서 업무 라벨과 유형 옵션을 추가/삭제/정렬하는 마스터 관리 화면을 설계한다.

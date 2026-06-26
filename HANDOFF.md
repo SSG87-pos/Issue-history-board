@@ -37,6 +37,7 @@ The most important source of truth for visual decisions is:
 
 - Created the main app flow for category, subtopic, issue group, detail issue, and dated history entries.
 - Added local MVP persistence through browser storage and JSON import/export/reset controls.
+- Added Excel `.xlsx` import/export for app-generated history row files. JSON remains the full backup/restore path; Excel is an operational table-review helper.
 - Expanded fallback seed data so the MVP demo has visible issues across all four top-level categories.
 - Added GitHub Pages demo build support and deploy via the `gh-pages` branch.
 - Added home dashboard, subtopic detail page, history list, issue-group view, detail panel, and add/edit drawer.
@@ -65,6 +66,8 @@ Primary source files for this design work:
 - `src/domain/types.ts`
 - `src/domain/selectors.ts`
 - `src/domain/seedData.ts`
+- `src/domain/xlsxExchange.ts`
+- `src/domain/xlsxExchange.test.ts`
 - `src/domain/selectors.test.ts`
 - `src/styles.css`
 - `package.json`
@@ -98,6 +101,13 @@ Expected result:
 
 After documentation-only edits, run the same commands again before committing if source files change.
 
+Latest test count after Excel support:
+
+```text
+3 test files
+12 tests
+```
+
 ## Risks and Notes
 
 - `src/styles.css` contains several later override blocks. New CSS should usually be added near the latest override area instead of editing an early obsolete rule and expecting it to win.
@@ -107,6 +117,7 @@ After documentation-only edits, run the same commands again before committing if
 - Do not revert the add/edit drawer to a large card-list layout; it becomes too complex when issue/detail data grows.
 - Keep the add drawer hierarchy explicit: `대분류 > 하위 주제 > 이슈 > 세부 항목`, with existing and new choices available at each step.
 - Do not convert the sidebar back to a dark navigation panel.
+- Do not replace Excel `.xlsx` exchange with CSV. CSV can break Korean text, line breaks, comma-containing content, and multiple attachment URLs.
 
 ## Next Prompt
 
