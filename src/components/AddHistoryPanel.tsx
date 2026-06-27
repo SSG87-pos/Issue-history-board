@@ -1,8 +1,9 @@
 import { X } from 'lucide-react';
 import { type KeyboardEvent, useMemo, useState } from 'react';
+import { getIssueLabelOptions, getRecordTypeLabels, getRecordTypeOptions, getStatusLabels, getStatusOptionsForPhase } from '../domain/options';
 import { getDetailIssuesForGroup, getRecommendedIssueGroups } from '../domain/selectors';
 import type { Category, DetailIssue, HistoryEntry, IssueBoardData, IssueGroup, IssuePhase, IssueRecordType, IssueStatus, Subtopic } from '../domain/types';
-import { DEFAULT_STATUS_BY_PHASE, PHASE_LABELS, PHASE_STATUS_OPTIONS, RECORD_TYPE_LABELS, STATUS_LABELS, STATUS_PHASES } from '../domain/types';
+import { DEFAULT_STATUS_BY_PHASE, PHASE_LABELS, PHASE_STATUS_OPTIONS, STATUS_PHASES } from '../domain/types';
 
 const CATEGORY_ICON_OPTIONS = ['📌', '🧵', '📁', '🧪', '🤝', '🏭', '🔬', '⚙️', '🛠️', '📊', '🔒', '💡', '🧭', '🧾'];
 
@@ -132,7 +133,7 @@ export function AddHistoryPanel({
   const initialStatus = editingEntry?.status ?? 'actioning';
   const [phase, setPhase] = useState<IssuePhase>(STATUS_PHASES[initialStatus]);
   const [status, setStatus] = useState<IssueStatus>(initialStatus);
-  const [recordType, setRecordType] = useState<IssueRecordType>(editingEntry?.recordType ?? 'action');
+  const [recordType, setRecordType] = useState<IssueRecordType | undefined>(editingEntry ? editingEntry.recordType : 'action');
   const [changesStatus, setChangesStatus] = useState(editingEntry?.changesDetailIssueStatus ?? false);
   const [summary, setSummary] = useState(editingEntry?.summary ?? '');
   const [details, setDetails] = useState(editingEntry?.details ?? '');
@@ -145,14 +146,18 @@ export function AddHistoryPanel({
   const [relatedDepartment, setRelatedDepartment] = useState(
     initialDetailIssue?.relatedDepartment ?? initialIssueGroup?.relatedDepartment ?? '',
   );
+  const statusLabels = useMemo(() => getStatusLabels(data), [data]);
+  const recordTypeLabels = useMemo(() => getRecordTypeLabels(data), [data]);
+  const issueLabelOptions = useMemo(() => getIssueLabelOptions(data), [data]);
   const phaseOptions = Object.entries(PHASE_LABELS) as [IssuePhase, string][];
-  const statusOptions = PHASE_STATUS_OPTIONS[phase].map((value) => [value, STATUS_LABELS[value]] as [IssueStatus, string]);
-  const recordTypeOptions = Object.entries(RECORD_TYPE_LABELS) as [IssueRecordType, string][];
+  const statusOptions = getStatusOptionsForPhase(data, phase, status).map((value) => [value, statusLabels[value]] as [IssueStatus, string]);
+  const recordTypeOptions = getRecordTypeOptions(data, recordType).map((value) => [value, recordTypeLabels[value]] as [IssueRecordType, string]);
 
   function selectPhase(nextPhase: IssuePhase) {
+    const nextStatusOptions = getStatusOptionsForPhase(data, nextPhase);
     setPhase(nextPhase);
     if (!PHASE_STATUS_OPTIONS[nextPhase].includes(status)) {
-      setStatus(DEFAULT_STATUS_BY_PHASE[nextPhase]);
+      setStatus(nextStatusOptions[0] ?? DEFAULT_STATUS_BY_PHASE[nextPhase]);
     }
   }
 
@@ -248,7 +253,7 @@ export function AddHistoryPanel({
         summary: summary.trim(),
         details: details.trim() || summary.trim(),
         remainingRisk: remainingRisk.trim(),
-        blockName: STATUS_LABELS[status],
+        blockName: statusLabels[status],
         referenceLinks,
         updatedAt: now,
       }, updatedDetailIssue);
@@ -337,7 +342,7 @@ export function AddHistoryPanel({
         summary: summary.trim(),
         details: details.trim() || summary.trim(),
         remainingRisk: remainingRisk.trim(),
-        blockName: STATUS_LABELS[status],
+        blockName: statusLabels[status],
         referenceLinks,
         authorName: '관리자',
         createdAt: now,
@@ -566,7 +571,17 @@ export function AddHistoryPanel({
                         </label>
                         <label className="field">
                           <span>업무 라벨</span>
-                          <input value={newIssueLabel} onChange={(event) => setNewIssueLabel(event.target.value)} placeholder="예: 시험조건, 표면결함개선" />
+                          <input
+                            list="issue-label-options"
+                            value={newIssueLabel}
+                            onChange={(event) => setNewIssueLabel(event.target.value)}
+                            placeholder="예: 시험조건, 표면결함개선"
+                          />
+                          <datalist id="issue-label-options">
+                            {issueLabelOptions.map((label) => (
+                              <option key={label} value={label} />
+                            ))}
+                          </datalist>
                         </label>
                       </div>
                     )}
@@ -693,11 +708,22 @@ export function AddHistoryPanel({
               </div>
             </div>
             <div className="field record-type-field">
-              <span>유형</span>
+              <div className="record-type-header">
+                <span>유형</span>
+                <label className="record-type-empty-toggle">
+                  <input
+                    type="checkbox"
+                    checked={!recordType}
+                    onChange={(event) => setRecordType(event.target.checked ? undefined : 'action')}
+                  />
+                  <span>미선택</span>
+                </label>
+              </div>
               <div className="status-option-grid record-type-grid" role="group" aria-label="유형">
                 {recordTypeOptions.map(([value, label]) => (
                   <button
                     className={`status-option record-type-option ${recordType === value ? 'is-selected' : ''}`}
+                    disabled={!recordType}
                     key={value}
                     type="button"
                     onClick={() => setRecordType(value)}
@@ -708,11 +734,6 @@ export function AddHistoryPanel({
               </div>
             </div>
           </div>
-
-          <label className="checkbox-field">
-            <input type="checkbox" checked={changesStatus} onChange={(event) => setChangesStatus(event.target.checked)} />
-            <span>필요할 때만 이 기록의 세부 단계를 이슈 대표 상태에도 반영합니다.</span>
-          </label>
 
           <label className="field">
             <span>요약</span>

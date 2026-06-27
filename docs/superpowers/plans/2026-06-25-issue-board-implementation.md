@@ -2874,7 +2874,7 @@ Run:
 pnpm dev --host 127.0.0.1
 ```
 
-Expected: Vite reports a local URL such as `http://127.0.0.1:5173/`.
+Expected: Vite reports a local URL on the open port it selected, such as `http://127.0.0.1:<port>/`.
 
 - [x] **Step 2: Verify desktop primary flow**
 

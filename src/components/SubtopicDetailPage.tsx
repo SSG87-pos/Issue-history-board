@@ -1,6 +1,7 @@
-import { type CSSProperties, useMemo, useRef, useState } from 'react';
+import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
 import type { Category, HistoryEntry, IssueBoardData, IssueGroup, IssuePhase, Subtopic } from '../domain/types';
 import { PHASE_LABELS, STATUS_PHASES } from '../domain/types';
+import { LONG_RUNNING_DELAY_DAYS } from '../domain/selectors';
 import { HistoryDetail } from './HistoryDetail';
 import { HistoryList } from './HistoryList';
 
@@ -14,13 +15,16 @@ type SubtopicDetailPageProps = {
   onSelectEntry: (entryId: string) => void;
   onBackHome: () => void;
   onOpenAdd: () => void;
+  onDeleteEntry: (entry: HistoryEntry) => void;
   onOpenEdit: (entry: HistoryEntry) => void;
+  onToggleReview: (detailIssueId: string) => void;
+  canEditEntries?: boolean;
+  initialDashboardFilter?: DashboardFilter;
 };
 
 type DashboardFilter = 'all' | 'delayed' | 'recent' | IssuePhase;
 
 const PHASE_ORDER: IssuePhase[] = ['received', 'in_progress', 'closed'];
-const DELAYED_ISSUE_DAYS = 14;
 
 export function SubtopicDetailPage({
   data,
@@ -32,12 +36,16 @@ export function SubtopicDetailPage({
   onSelectEntry,
   onBackHome,
   onOpenAdd,
+  onDeleteEntry,
   onOpenEdit,
+  onToggleReview,
+  canEditEntries = true,
+  initialDashboardFilter = 'all',
 }: SubtopicDetailPageProps) {
   const listAnchorRef = useRef<HTMLDivElement>(null);
   const detailAnchorRef = useRef<HTMLDivElement>(null);
   const [isMobileDetailOpen, setIsMobileDetailOpen] = useState(false);
-  const [dashboardFilter, setDashboardFilter] = useState<DashboardFilter>('all');
+  const [dashboardFilter, setDashboardFilter] = useState<DashboardFilter>(initialDashboardFilter);
   const issuePhaseCounts = useMemo(
     () =>
       issues.reduce(
@@ -53,7 +61,9 @@ export function SubtopicDetailPage({
   const delayedIssues = useMemo(() => {
     const nowTime = Date.now();
     return issues.filter(
-      (issue) => STATUS_PHASES[issue.status] !== 'closed' && getElapsedDays(issue.firstOccurredAt, nowTime) >= DELAYED_ISSUE_DAYS,
+      (issue) =>
+        STATUS_PHASES[issue.status] !== 'closed' &&
+        getElapsedDays(issue.firstOccurredAt, nowTime) >= LONG_RUNNING_DELAY_DAYS,
     );
   }, [issues]);
   const latestEntryDate = entries[0]?.date;
@@ -69,7 +79,11 @@ export function SubtopicDetailPage({
   const visibleEntries = useMemo(() => entries.filter((entry) => visibleIssueIds.has(entry.issueGroupId)), [entries, visibleIssueIds]);
   const selectedEntry = visibleEntries.find((entry) => entry.id === selectedEntryId) ?? visibleEntries[0];
   const selectedIssue = selectedEntry ? visibleIssues.find((issue) => issue.id === selectedEntry.issueGroupId) : undefined;
-  const isStackedDetailViewport = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1180px)').matches;
+  const isStackedDetailViewport = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 1320px)').matches;
+
+  useEffect(() => {
+    setDashboardFilter(initialDashboardFilter);
+  }, [initialDashboardFilter, subtopic?.id]);
 
   function handleSelectEntry(entryId: string) {
     onSelectEntry(entryId);
@@ -101,9 +115,11 @@ export function SubtopicDetailPage({
           <button className="text-button" type="button" onClick={onBackHome}>
             홈으로
           </button>
-          <button className="primary-button page-actions__add" type="button" onClick={onOpenAdd}>
-            이력 추가
-          </button>
+          {canEditEntries && (
+            <button className="primary-button page-actions__add" type="button" onClick={onOpenAdd}>
+              이력 추가
+            </button>
+          )}
         </div>
       </div>
 
@@ -143,6 +159,7 @@ export function SubtopicDetailPage({
         >
           <span>처리 지연 이슈</span>
           <strong>{delayedIssues.length}건</strong>
+          <small>{LONG_RUNNING_DELAY_DAYS}일 이상 열린 미해결</small>
         </button>
 
         <button
@@ -159,6 +176,7 @@ export function SubtopicDetailPage({
         <div className="history-list-anchor" ref={listAnchorRef}>
           <HistoryList
             activeDashboardFilterLabel={dashboardFilter === 'all' ? undefined : getDashboardFilterLabel(dashboardFilter)}
+            data={data}
             detailIssues={data.detailIssues}
             entries={visibleEntries}
             issues={visibleIssues}
@@ -173,8 +191,11 @@ export function SubtopicDetailPage({
             selectedEntry={selectedEntry}
             selectedIssue={selectedIssue}
             onCloseDetail={handleCloseDetail}
+            onDeleteEntry={onDeleteEntry}
             onEditEntry={onOpenEdit}
             onSelectEntry={handleSelectEntry}
+            onToggleReview={onToggleReview}
+            canEditEntries={canEditEntries}
           />
         </div>
       </div>

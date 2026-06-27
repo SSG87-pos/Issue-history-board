@@ -86,6 +86,18 @@ function normalizeBoardData(data: IssueBoardData): IssueBoardData {
       ...entry,
       referenceLinks: Array.isArray(entry.referenceLinks) ? entry.referenceLinks : [],
     })),
+    settings: data.settings
+      ? {
+          ...data.settings,
+          labelOptions: Array.isArray(data.settings.labelOptions) ? [...data.settings.labelOptions] : undefined,
+          recordTypeLabels: data.settings.recordTypeLabels ? { ...data.settings.recordTypeLabels } : undefined,
+          recordTypeOrder: Array.isArray(data.settings.recordTypeOrder) ? [...data.settings.recordTypeOrder] : undefined,
+          hiddenRecordTypes: Array.isArray(data.settings.hiddenRecordTypes) ? [...data.settings.hiddenRecordTypes] : undefined,
+          statusLabels: data.settings.statusLabels ? { ...data.settings.statusLabels } : undefined,
+          statusOrder: Array.isArray(data.settings.statusOrder) ? [...data.settings.statusOrder] : undefined,
+          hiddenStatuses: Array.isArray(data.settings.hiddenStatuses) ? [...data.settings.hiddenStatuses] : undefined,
+        }
+      : undefined,
   };
 
   for (const seedCategory of seedData.categories) {

@@ -13,6 +13,7 @@ import {
   type IssueStatus,
   type Subtopic,
 } from './types';
+import { getRecordTypeLabels, getStatusLabels } from './options';
 
 const EXCEL_COLUMNS = [
   '대분류',
@@ -40,9 +41,7 @@ type SheetRow = Record<ExcelColumn, string>;
 
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-const statusByLabel = invertRecord(STATUS_LABELS);
 const phaseByLabel = invertRecord(PHASE_LABELS);
-const recordTypeByLabel = invertRecord(RECORD_TYPE_LABELS);
 
 export function exportBoardDataAsXlsx(data: IssueBoardData): Uint8Array {
   const rows = boardDataToRows(data);
@@ -62,6 +61,8 @@ export function importBoardDataFromXlsx(current: IssueBoardData, file: ArrayBuff
 }
 
 function boardDataToRows(data: IssueBoardData): string[][] {
+  const statusLabels = getStatusLabels(data);
+  const recordTypeLabels = getRecordTypeLabels(data);
   const rows = data.historyEntries
     .slice()
     .sort((a, b) => b.date.localeCompare(a.date))
@@ -80,8 +81,8 @@ function boardDataToRows(data: IssueBoardData): string[][] {
           '세부 항목': detail?.title ?? '',
           '업무 라벨': issue?.groupLabel ?? '',
           상태: PHASE_LABELS[phase],
-          '세부 단계': STATUS_LABELS[entry.status],
-          유형: RECORD_TYPE_LABELS[entry.recordType ?? 'other'],
+          '세부 단계': statusLabels[entry.status],
+          유형: recordTypeLabels[entry.recordType ?? 'other'],
           날짜: entry.date,
           요약: entry.summary,
           '상세 내용': entry.details,
@@ -106,9 +107,24 @@ function importRows(current: IssueBoardData, rows: SheetRow[]): IssueBoardData {
     issueGroups: current.issueGroups.map((item) => ({ ...item, tags: [...item.tags] })),
     detailIssues: current.detailIssues.map((item) => ({ ...item, tags: [...item.tags] })),
     historyEntries: current.historyEntries.map((item) => ({ ...item, referenceLinks: [...item.referenceLinks] })),
+    settings: current.settings
+      ? {
+          ...current.settings,
+          labelOptions: current.settings.labelOptions ? [...current.settings.labelOptions] : undefined,
+          statusLabels: current.settings.statusLabels ? { ...current.settings.statusLabels } : undefined,
+          statusOrder: current.settings.statusOrder ? [...current.settings.statusOrder] : undefined,
+          hiddenStatuses: current.settings.hiddenStatuses ? [...current.settings.hiddenStatuses] : undefined,
+          recordTypeLabels: current.settings.recordTypeLabels ? { ...current.settings.recordTypeLabels } : undefined,
+          recordTypeOrder: current.settings.recordTypeOrder ? [...current.settings.recordTypeOrder] : undefined,
+          hiddenRecordTypes: current.settings.hiddenRecordTypes ? [...current.settings.hiddenRecordTypes] : undefined,
+        }
+      : undefined,
   };
   let sequence = 0;
   const now = new Date().toISOString();
+  const statusByLabel = labelMapFromRecords(STATUS_LABELS, getStatusLabels(next));
+  const recordTypeByLabel = labelMapFromRecords(RECORD_TYPE_LABELS, getRecordTypeLabels(next));
+  const statusLabels = getStatusLabels(next);
 
   for (const row of rows) {
     const categoryLabel = row.대분류.trim();
@@ -119,12 +135,21 @@ function importRows(current: IssueBoardData, rows: SheetRow[]): IssueBoardData {
 
     if (!categoryLabel || !subtopicLabel || !issueTitle || !detailTitle || !summary) continue;
 
-    const status = readStatus(row);
+    const status = readStatus(row, statusByLabel);
     const category = findOrCreateCategory(next, categoryLabel, () => nextId('category', sequence++));
     const subtopic = findOrCreateSubtopic(next, category, subtopicLabel, () => nextId('subtopic', sequence++));
     const issue = findOrCreateIssueGroup(next, category, subtopic, row, status, () => nextId('issue', sequence++));
     const detail = findOrCreateDetailIssue(next, issue, row, status, () => nextId('detail', sequence++));
-    const importedEntry = buildHistoryEntry(row, issue, detail, status, now, () => nextId('history', sequence++));
+    const importedEntry = buildHistoryEntry(
+      row,
+      issue,
+      detail,
+      status,
+      now,
+      () => nextId('history', sequence++),
+      recordTypeByLabel,
+      statusLabels,
+    );
 
     const existingIndex = importedEntry.id
       ? next.historyEntries.findIndex((entry) => entry.id === importedEntry.id)
@@ -485,6 +510,8 @@ function buildHistoryEntry(
   status: IssueStatus,
   now: string,
   createId: () => string,
+  recordTypeByLabel: Map<string, IssueRecordType>,
+  statusLabels: Record<IssueStatus, string>,
 ): HistoryEntry {
   const id = row.이력ID.trim() || createId();
   const date = row.날짜.trim() || today();
@@ -496,11 +523,11 @@ function buildHistoryEntry(
     date,
     status,
     changesDetailIssueStatus: readBoolean(row['이슈 상태 반영']),
-    recordType: readRecordType(row.유형),
+    recordType: readRecordType(row.유형, recordTypeByLabel),
     summary: row.요약.trim(),
     details: row['상세 내용'].trim() || row.요약.trim(),
     remainingRisk: row['향후 계획'].trim(),
-    blockName: STATUS_LABELS[status],
+    blockName: statusLabels[status],
     referenceLinks: splitList(row['첨부 URL']),
     authorName: row.담당자.trim() || undefined,
     createdAt: now,
@@ -508,7 +535,7 @@ function buildHistoryEntry(
   };
 }
 
-function readStatus(row: SheetRow): IssueStatus {
+function readStatus(row: SheetRow, statusByLabel: Map<string, IssueStatus>): IssueStatus {
   const detailStatus = statusByLabel.get(normalize(row['세부 단계']));
   if (detailStatus) return detailStatus;
 
@@ -518,7 +545,7 @@ function readStatus(row: SheetRow): IssueStatus {
   return 'cause_review';
 }
 
-function readRecordType(value: string): IssueRecordType {
+function readRecordType(value: string, recordTypeByLabel: Map<string, IssueRecordType>): IssueRecordType {
   return recordTypeByLabel.get(normalize(value)) ?? 'other';
 }
 
@@ -564,6 +591,16 @@ function unescapeXml(value: string): string {
 
 function invertRecord<T extends string>(record: Record<T, string>) {
   return new Map(Object.entries(record).map(([key, value]) => [normalize(value as string), key as T]));
+}
+
+function labelMapFromRecords<T extends string>(...records: Record<T, string>[]): Map<string, T> {
+  const labels = new Map<string, T>();
+  for (const record of records) {
+    for (const [key, value] of Object.entries(record) as [T, string][]) {
+      labels.set(normalize(value), key);
+    }
+  }
+  return labels;
 }
 
 function normalize(value: string): string {

@@ -11,6 +11,23 @@ describe('XLSX exchange', () => {
     expect(signature).toBe('504b0304');
   });
 
+  it('exports configured status and record type labels', () => {
+    const xlsx = exportBoardDataAsXlsx({
+      ...seedData,
+      historyEntries: seedData.historyEntries.map((entry, index) =>
+        index === 0 ? { ...entry, status: 'actioning', recordType: 'action' } : entry,
+      ),
+      settings: {
+        statusLabels: { actioning: '조치 진행' },
+        recordTypeLabels: { action: '액션 기록' },
+      },
+    });
+    const text = new TextDecoder().decode(xlsx);
+
+    expect(text).toContain('조치 진행');
+    expect(text).toContain('액션 기록');
+  });
+
   it('updates an existing history entry when the exported id is present', () => {
     const target = seedData.historyEntries[0];
     const exported = exportBoardDataAsXlsx(seedData);
@@ -19,6 +36,34 @@ describe('XLSX exchange', () => {
 
     expect(imported.historyEntries).toHaveLength(seedData.historyEntries.length);
     expect(updated?.summary).toBe(target.summary);
+  });
+
+  it('imports configured status and record type labels back to their canonical values', () => {
+    const source = {
+      ...seedData,
+      historyEntries: seedData.historyEntries.map((entry, index) =>
+        index === 0 ? { ...entry, status: 'actioning', recordType: 'action' } : entry,
+      ),
+      settings: {
+        statusLabels: { actioning: '조치 진행' },
+        recordTypeLabels: { action: '액션 기록' },
+        statusOrder: ['actioning', 'cause_review', 'verification', 'on_hold', 'occurred', 'resolved'],
+        hiddenStatuses: ['cause_review'],
+        recordTypeOrder: ['action', 'other', 'meeting', 'test', 'analysis', 'report', 'approval', 'customer'],
+        hiddenRecordTypes: ['meeting'],
+      },
+    } satisfies IssueBoardData;
+    const exported = exportBoardDataAsXlsx(source);
+    const imported = importBoardDataFromXlsx(source, exported.buffer as ArrayBuffer);
+    const updated = imported.historyEntries.find((entry) => entry.id === seedData.historyEntries[0].id);
+
+    expect(updated?.status).toBe('actioning');
+    expect(updated?.recordType).toBe('action');
+    expect(updated?.blockName).toBe('조치 진행');
+    expect(imported.settings?.statusOrder?.[0]).toBe('actioning');
+    expect(imported.settings?.hiddenStatuses).toContain('cause_review');
+    expect(imported.settings?.recordTypeOrder?.[0]).toBe('action');
+    expect(imported.settings?.hiddenRecordTypes).toContain('meeting');
   });
 
   it('creates missing hierarchy values from an xlsx row', () => {

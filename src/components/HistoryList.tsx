@@ -1,12 +1,14 @@
 import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import type { DetailIssue, HistoryEntry, IssueGroup } from '../domain/types';
-import { PHASE_LABELS, RECORD_TYPE_LABELS, STATUS_PHASES } from '../domain/types';
+import { getRecordTypeLabels } from '../domain/options';
+import type { DetailIssue, HistoryEntry, IssueBoardData, IssueGroup } from '../domain/types';
+import { PHASE_LABELS, STATUS_PHASES } from '../domain/types';
 
 const PAGE_SIZE = 10;
 
 type HistoryListProps = {
   activeDashboardFilterLabel?: string;
+  data: Pick<IssueBoardData, 'settings'>;
   detailIssues: DetailIssue[];
   entries: HistoryEntry[];
   issues: IssueGroup[];
@@ -17,6 +19,7 @@ type HistoryListProps = {
 
 export function HistoryList({
   activeDashboardFilterLabel,
+  data,
   detailIssues,
   entries,
   issues,
@@ -28,6 +31,7 @@ export function HistoryList({
   const [openOnly, setOpenOnly] = useState(false);
   const [viewMode, setViewMode] = useState<'date' | 'issue'>('date');
   const [pageIndex, setPageIndex] = useState(0);
+  const recordTypeLabels = useMemo(() => getRecordTypeLabels(data), [data]);
   const issueById = useMemo(() => new Map(issues.map((issue) => [issue.id, issue])), [issues]);
   const detailIssueById = useMemo(() => new Map(detailIssues.map((detailIssue) => [detailIssue.id, detailIssue])), [detailIssues]);
   const entriesByIssueId = useMemo(() => {
@@ -57,7 +61,7 @@ export function HistoryList({
         entry.details,
         entry.remainingRisk,
         entry.status,
-        entry.recordType ? RECORD_TYPE_LABELS[entry.recordType] : '',
+        entry.recordType ? recordTypeLabels[entry.recordType] : '',
         entry.blockName,
         entry.authorName,
         ...entry.referenceLinks,
@@ -128,7 +132,7 @@ export function HistoryList({
             entry.status,
             entry.blockName,
             entry.authorName,
-            entry.recordType ? RECORD_TYPE_LABELS[entry.recordType] : '',
+            entry.recordType ? recordTypeLabels[entry.recordType] : '',
             ...entry.referenceLinks,
           ]),
         ]
@@ -218,7 +222,7 @@ export function HistoryList({
                   <div className="row-meta">
                     <time>{entry.date}</time>
                     {issue && <span className="issue-chip">{issue.groupLabel}</span>}
-                    {entry.recordType && <span className="record-type-chip">{RECORD_TYPE_LABELS[entry.recordType]}</span>}
+                    {entry.recordType && <span className="record-type-chip">{recordTypeLabels[entry.recordType]}</span>}
                     <span className={`status-dot-label phase-${STATUS_PHASES[entry.status]}`}>
                       {PHASE_LABELS[STATUS_PHASES[entry.status]]}
                     </span>

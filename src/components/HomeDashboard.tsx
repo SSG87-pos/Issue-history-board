@@ -9,6 +9,8 @@ type HomeDashboardProps = {
   longRunningIssues: IssueGroup[];
   selectedSubtopicId?: string;
   onSelectSubtopic: (subtopicId: string) => void;
+  onSelectLongRunningIssue: (issue: IssueGroup) => void;
+  onViewLongRunningIssues: () => void;
 };
 
 export function HomeDashboard({
@@ -18,8 +20,12 @@ export function HomeDashboard({
   longRunningIssues,
   selectedSubtopicId,
   onSelectSubtopic,
+  onSelectLongRunningIssue,
+  onViewLongRunningIssues,
 }: HomeDashboardProps) {
   const summaryBySubtopic = new Map(summaries.map((summary) => [summary.subtopic.id, summary]));
+  const categoryById = new Map(categories.map((category) => [category.id, category]));
+  const subtopicById = new Map(subtopics.map((subtopic) => [subtopic.id, subtopic]));
   const categoryIconById = new Map([
     ['grade-product', '🧵'],
     ['investment-project', '📁'],
@@ -95,21 +101,28 @@ export function HomeDashboard({
               <span className="side-panel__caption">{LONG_RUNNING_DELAY_DAYS}일 이상 미해결</span>
             </h2>
           </div>
-          <button type="button">전체 보기</button>
+          <button type="button" disabled={longRunningIssues.length === 0} onClick={onViewLongRunningIssues}>
+            전체 보기
+          </button>
         </div>
         <div className="long-running-list">
           {longRunningIssues.slice(0, 5).map((issue) => (
-            <div className="long-running-card" key={issue.id}>
+            <button
+              className="long-running-card"
+              key={issue.id}
+              type="button"
+              onClick={() => onSelectLongRunningIssue(issue)}
+            >
               <strong>{getElapsedDays(issue.firstOccurredAt)}일</strong>
               <div>
                 <b>{issue.title}</b>
-                <span>{issue.categoryId === 'grade-product' ? '강종/제품' : '대분류'} &gt; {issue.subtopicId.toUpperCase()}</span>
+                <span>{categoryById.get(issue.categoryId)?.label ?? '대분류'} &gt; {subtopicById.get(issue.subtopicId)?.label ?? issue.subtopicId}</span>
               </div>
               <p>
                 발생일
                 <time>{issue.firstOccurredAt}</time>
               </p>
-            </div>
+            </button>
           ))}
           {longRunningIssues.length === 0 && <p className="empty-list">30일 이상 지연 중인 이슈가 없습니다.</p>}
         </div>

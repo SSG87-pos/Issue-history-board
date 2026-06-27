@@ -140,4 +140,15 @@ export type IssueBoardData = {
   issueGroups: IssueGroup[];
   detailIssues: DetailIssue[];
   historyEntries: HistoryEntry[];
+  settings?: IssueBoardSettings;
+};
+
+export type IssueBoardSettings = {
+  statusLabels?: Partial<Record<IssueStatus, string>>;
+  recordTypeLabels?: Partial<Record<IssueRecordType, string>>;
+  statusOrder?: IssueStatus[];
+  hiddenStatuses?: IssueStatus[];
+  recordTypeOrder?: IssueRecordType[];
+  hiddenRecordTypes?: IssueRecordType[];
+  labelOptions?: string[];
 };

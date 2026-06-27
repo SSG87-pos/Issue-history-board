@@ -8,7 +8,7 @@ Current branch: `codex/design-readability-refresh`
 Remote: `origin` -> `https://github.com/SSG87-pos/Issue-history-board.git`
 Demo URL after `gh-pages` branch deploy: `https://ssg87-pos.github.io/Issue-history-board/`
 
-Use this file with `docs/current-ui-decisions.md` and `TODO.md` when continuing the project in a new chat.
+Use this file with `docs/current-ui-decisions.md`, `docs/design-readability-refresh.md`, `docs/research-history-board-summary.md`, and `TODO.md` when continuing the project in a new chat.
 
 ## Current State
 
@@ -27,6 +27,9 @@ The latest UI direction is a restrained, light internal operations dashboard:
 - every add drawer step should offer both existing-item selection and new-item creation where applicable
 - add drawer status buttons are compact segmented controls, not large sticker chips
 - the independent `다음 확인일` block is intentionally removed from the detail body
+- login uses the POSLAB entry screen with `로그인 / 회원가입` tabs; visible login labels are `이메일` and `비밀번호`
+- signup collects `이름 / 이메일 / 비밀번호`, then admin approval creates an active viewer account with the submitted password
+- report page is download-focused; the large report preview/list card is intentionally removed
 
 The most important source of truth for visual decisions is:
 
@@ -38,9 +41,13 @@ The most important source of truth for visual decisions is:
 - Created the main app flow for category, subtopic, issue group, detail issue, and dated history entries.
 - Added local MVP persistence through browser storage and JSON import/export/reset controls.
 - Added Excel `.xlsx` import/export for app-generated history row files. JSON remains the full backup/restore path; Excel is an operational table-review helper.
+- Added report export filters and Excel/Word download output. The former large report preview rows were removed because they duplicated the actual downloadable report and made the report page too heavy.
 - Expanded fallback seed data so the MVP demo has visible issues across all four top-level categories.
-- Added GitHub Pages demo build support and deploy via the `gh-pages` branch.
+- Added GitHub Pages demo build support and a Pages preview Playwright smoke test for the `/Issue-history-board/` base path.
+- Added a GitHub Pages Actions workflow that builds, previews, deploys, and live-verifies the `/Issue-history-board/` static demo from `main`.
 - Added home dashboard, subtopic detail page, history list, issue-group view, detail panel, and add/edit drawer.
+- Reworked the server login screen to follow the reusable `SSG87-pos/poslab-login-page` POSLAB entry format, with `로그인 / 회원가입` tabs and app-specific `PosLAB 이력관리 센터` title copy.
+- Added signup persistence through FastAPI and surfaced submitted signup requests in the admin permission screen. Approval creates an active viewer account using the submitted email and password.
 - Split representative states into `접수 / 진행 / 종료`.
 - Reworked the design branch through several visual passes:
   - softer sidebar color
@@ -86,26 +93,65 @@ See `TODO.md`. The next useful work is visual QA in the browser, then any additi
 
 ## Validation Status
 
-Before this handoff update, the latest source changes passed:
+Latest broad validation:
 
 ```bash
-pnpm build
-pnpm test
+pnpm verify:static
+pnpm verify:e2e
 ```
 
 Expected result:
 
-- build passes
-- 2 test files pass
-- 9 tests pass
+- unit tests pass
+- production build passes
+- backend security/API unittest passes
+- local and server-mode Playwright tests pass
+- deployment/env static checks pass
 
-After documentation-only edits, run the same commands again before committing if source files change.
+Latest focused admin/data connection validation:
 
-Latest test count after Excel support:
+```bash
+pnpm test:e2e -- --grep "admin|report page filters" --project=chromium --project=mobile-chrome
+pnpm test:e2e:server -- --grep "admin taxonomy and owner master edits|admin report shortcuts" --project=chromium
+```
+
+These checks cover admin module navigation, owner/master data propagation into home/detail/report surfaces, report downloads, mobile admin layout, and FastAPI server persistence after relogin.
+
+Focused login and signup validation:
+
+```bash
+pnpm test:e2e:server -- --grep "login screen|access request" --project=chromium --project=mobile-chrome
+```
+
+This checks the POSLAB entry login panel across the priority viewports `1440x900`, `1024x768`, `768x1024`, `390x844`, and `360x740`; keeps the notebook-style two-column composition through tablet landscape; hides the lanyard below compact tablet mode; verifies the email field is focused; guards against oversized login cards and typography drift; and confirms a `회원가입` submitted from the login screen appears in admin permission management, can be approved, and can then log in with the submitted email and password.
+
+Local Playwright scripts run through `scripts/run-playwright-with-ports.mjs`, which picks open loopback ports for Vite/FastAPI so parallel Codex threads do not reuse each other's `5173`, `5175`, or `8010` servers. The runner first tries OS-assigned ephemeral ports when the environment permits it, then scans a wider `42000-60999` loopback range. Override with `E2E_WEB_PORT`, `E2E_PAGES_PORT`, `E2E_SERVER_API_PORT`, or `E2E_SERVER_WEB_PORT` only when a fixed port is intentionally needed.
+
+Pages preview validation:
+
+```bash
+pnpm test:e2e:pages
+pnpm test:e2e:pages:live
+```
+
+The preview command builds with `vite --mode github-pages`, serves `dist`, and checks the `/Issue-history-board/` base path with fallback seed data. The live command checks the public GitHub Pages URL.
+
+Live Pages check:
 
 ```text
-3 test files
-12 tests
+https://ssg87-pos.github.io/Issue-history-board/ returns HTTP 200 and renders the fallback demo board without browser console errors. The live HTML currently references `index-B0VKNy4R.js` / `index-SzPiKn5c.css`, while the latest local build produced `index-D-X9jBU9.js` / `index-DqqD1h8a.css`. Run the new Pages workflow from `main`; its final `verify-live` job runs `pnpm test:e2e:pages:live:current` before treating the public demo as current.
+```
+
+After refreshing `gh-pages`, run:
+
+```bash
+pnpm test:e2e:pages:live:current
+```
+
+Known external validation gap:
+
+```text
+Docker CLI is not available on the current Mac environment. Run `./scripts/company-run.sh check`, `./scripts/company-run.sh up`, `./scripts/company-run.sh health`, and `pnpm check:deployment -- --with-docker` on a Docker host before company rollout.
 ```
 
 ## Risks and Notes
@@ -118,6 +164,8 @@ Latest test count after Excel support:
 - Keep the add drawer hierarchy explicit: `대분류 > 하위 주제 > 이슈 > 세부 항목`, with existing and new choices available at each step.
 - Do not convert the sidebar back to a dark navigation panel.
 - Do not replace Excel `.xlsx` exchange with CSV. CSV can break Korean text, line breaks, comma-containing content, and multiple attachment URLs.
+- Do not reintroduce the old `권한 신청` tab, temporary-password signup copy, login description paragraph, department/emoji badge, or `이메일 또는 아이디` visible label on the login screen.
+- Do not reintroduce the large report preview card/list on the report page unless the report workflow is redesigned around an explicit preview mode.
 
 ## Next Prompt
 

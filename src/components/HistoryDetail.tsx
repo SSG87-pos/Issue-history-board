@@ -1,21 +1,35 @@
 import { Star } from 'lucide-react';
+import { getRecordTypeLabels, getStatusLabels } from '../domain/options';
 import {
   getGroupedTimeline,
   getHistoryEntriesForDetailIssue,
 } from '../domain/selectors';
 import type { HistoryEntry, IssueBoardData, IssueGroup } from '../domain/types';
-import { PHASE_LABELS, RECORD_TYPE_LABELS, STATUS_LABELS, STATUS_PHASES } from '../domain/types';
+import { PHASE_LABELS, STATUS_PHASES } from '../domain/types';
 
 type HistoryDetailProps = {
   data: IssueBoardData;
   selectedEntry?: HistoryEntry;
   selectedIssue?: IssueGroup;
   onCloseDetail?: () => void;
+  onDeleteEntry: (entry: HistoryEntry) => void;
   onEditEntry: (entry: HistoryEntry) => void;
   onSelectEntry: (entryId: string) => void;
+  onToggleReview: (detailIssueId: string) => void;
+  canEditEntries?: boolean;
 };
 
-export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetail, onEditEntry, onSelectEntry }: HistoryDetailProps) {
+export function HistoryDetail({
+  data,
+  selectedEntry,
+  selectedIssue,
+  onCloseDetail,
+  onDeleteEntry,
+  onEditEntry,
+  onSelectEntry,
+  onToggleReview,
+  canEditEntries = true,
+}: HistoryDetailProps) {
   if (!selectedEntry || !selectedIssue) {
     return (
       <section className="history-detail empty-detail" aria-label="이력 상세">
@@ -36,7 +50,10 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetai
   const detailLines = toReadableLines(selectedEntry.details);
   const referenceLinks = selectedEntry.referenceLinks.length ? selectedEntry.referenceLinks : [];
   const entryPhase = STATUS_PHASES[selectedEntry.status];
-  const recordTypeLabel = selectedEntry.recordType ? RECORD_TYPE_LABELS[selectedEntry.recordType] : '일반';
+  const statusLabels = getStatusLabels(data);
+  const recordTypeLabels = getRecordTypeLabels(data);
+  const recordTypeLabel = selectedEntry.recordType ? recordTypeLabels[selectedEntry.recordType] : '일반';
+  const needsReview = Boolean(detailIssue?.needsReview);
 
   return (
     <section className="history-detail" aria-label="선택한 날짜 이력 상세">
@@ -44,9 +61,19 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetai
         <div>
           <div className="issue-title-row">
             <h2>{selectedIssue.title}</h2>
-            <button className="icon-button ghost" type="button" aria-label="중요 표시">
+            <button
+              aria-label={needsReview ? '중요 표시 해제' : '중요 표시'}
+              aria-pressed={needsReview}
+              className={`icon-button ghost ${needsReview ? 'is-active' : ''}`}
+              disabled={!canEditEntries || !detailIssue}
+              type="button"
+              onClick={() => {
+                if (detailIssue) onToggleReview(detailIssue.id);
+              }}
+            >
               <Star size={21} />
             </button>
+            {needsReview && <span className="review-flag">검토 필요</span>}
           </div>
         </div>
         <div className="detail-actions">
@@ -62,9 +89,16 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetai
               상세 닫기
             </button>
           )}
-          <button className="text-button" type="button" onClick={() => onEditEntry(selectedEntry)}>
-            이력 수정
-          </button>
+          {canEditEntries && (
+            <>
+              <button className="text-button" type="button" onClick={() => onEditEntry(selectedEntry)}>
+                이력 수정
+              </button>
+              <button className="text-button danger" type="button" onClick={() => onDeleteEntry(selectedEntry)}>
+                이력 삭제
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -128,7 +162,7 @@ export function HistoryDetail({ data, selectedEntry, selectedIssue, onCloseDetai
               <time>{selectedEntry.date}</time>
               <div className="entry-meta-chips" aria-label="이력 메타 정보">
                 <span className={`entry-meta-chip phase-${entryPhase}`}>{PHASE_LABELS[entryPhase]}</span>
-                <span className={`entry-meta-chip status-${selectedEntry.status}`}>{STATUS_LABELS[selectedEntry.status]}</span>
+                <span className={`entry-meta-chip status-${selectedEntry.status}`}>{statusLabels[selectedEntry.status]}</span>
                 <span className="entry-meta-chip">{recordTypeLabel}</span>
                 {selectedEntry.changesDetailIssueStatus && <span className="entry-meta-chip is-sync">이슈 반영</span>}
               </div>
