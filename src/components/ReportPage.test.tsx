@@ -9,7 +9,7 @@ describe('ReportPage', () => {
     vi.unstubAllGlobals();
   });
 
-  it('downloads filtered Excel and Word reports from the selected scope', () => {
+  it('downloads filtered Excel, HTML, and Word reports from the selected scope', () => {
     const downloadLinks: HTMLAnchorElement[] = [];
     const originalCreateElement = document.createElement.bind(document);
 
@@ -39,11 +39,13 @@ describe('ReportPage', () => {
 
     fireEvent.change(screen.getByLabelText('하위 주제'), { target: { value: 'sts' } });
     fireEvent.click(screen.getByRole('button', { name: 'Excel 다운로드' }));
+    fireEvent.click(screen.getByRole('button', { name: 'HTML 보고서' }));
     fireEvent.click(screen.getByRole('button', { name: 'Word 보고서' }));
 
     expect(downloadLinks[0].download).toMatch(/^STS_이력_보고서-\d{4}-\d{2}-\d{2}\.xlsx$/);
-    expect(downloadLinks[1].download).toMatch(/^STS_이력_보고서-\d{4}-\d{2}-\d{2}\.docx$/);
-    expect(URL.createObjectURL).toHaveBeenCalledTimes(2);
+    expect(downloadLinks[1].download).toMatch(/^STS_이력_보고서-\d{4}-\d{2}-\d{2}\.html$/);
+    expect(downloadLinks[2].download).toMatch(/^STS_이력_보고서-\d{4}-\d{2}-\d{2}\.docx$/);
+    expect(URL.createObjectURL).toHaveBeenCalledTimes(3);
   });
 
   it('shows data import and export controls only for users who can manage data', () => {

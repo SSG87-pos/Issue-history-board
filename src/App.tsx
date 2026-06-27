@@ -22,7 +22,7 @@ import { ReportPage } from './components/ReportPage';
 import type { ReportFilterPreset } from './components/ReportPage';
 import { deserializeBoardData, loadBoardData, resetBoardData, saveBoardData } from './domain/persistence';
 import { deleteHistoryEntry } from './domain/mutations';
-import { seedData } from './domain/seedData';
+import { emptyBoardData } from './domain/emptyBoardData';
 import {
   fetchBoardData,
   fetchCurrentUser,
@@ -60,8 +60,16 @@ function getFirstEntryForIssue(data: IssueBoardData, issueGroupId: string): Hist
     .sort((a, b) => b.date.localeCompare(a.date))[0];
 }
 
+function getFirstVisibleSubtopicId(data: IssueBoardData): string {
+  return data.subtopics.find((subtopic) => !subtopic.hidden)?.id ?? '';
+}
+
 function hasBoardContent(data: IssueBoardData): boolean {
   return data.categories.length > 0 && data.subtopics.length > 0;
+}
+
+function getInitialBoardData(): IssueBoardData {
+  return SERVER_API_BASE_URL ? emptyBoardData : loadBoardData();
 }
 
 function canEdit(user: CurrentUser | undefined): boolean {
@@ -77,10 +85,10 @@ function normalizeSearchText(value: string): string {
 }
 
 export function App() {
-  const [data, setData] = useState(() => (SERVER_API_BASE_URL ? seedData : loadBoardData()));
-  const [selectedSubtopicId, setSelectedSubtopicId] = useState('sts');
+  const [data, setData] = useState(getInitialBoardData);
+  const [selectedSubtopicId, setSelectedSubtopicId] = useState(() => getFirstVisibleSubtopicId(data));
   const [selectedEntryId, setSelectedEntryId] = useState<string | undefined>(() =>
-    getFirstEntryForSubtopic(SERVER_API_BASE_URL ? seedData : loadBoardData(), 'sts')?.id,
+    selectedSubtopicId ? getFirstEntryForSubtopic(data, selectedSubtopicId)?.id : undefined,
   );
   const [page, setPage] = useState<'home' | 'subtopic' | 'report' | 'admin'>('home');
   const [subtopicDashboardFilter, setSubtopicDashboardFilter] = useState<'all' | 'delayed'>('all');
@@ -125,11 +133,13 @@ export function App() {
         ]);
         if (cancelled) return;
         const serverHasContent = hasBoardContent(boardData);
-        const hydratedData = serverHasContent ? boardData : seedData;
+        const hydratedData = serverHasContent ? boardData : emptyBoardData;
+        const nextSubtopicId = getFirstVisibleSubtopicId(hydratedData);
         lastSavedServerPayloadRef.current = serverHasContent ? JSON.stringify(hydratedData) : undefined;
         setCurrentUser(user);
         setData(hydratedData);
-        setSelectedEntryId(getFirstEntryForSubtopic(hydratedData, selectedSubtopicId)?.id);
+        setSelectedSubtopicId(nextSubtopicId);
+        setSelectedEntryId(nextSubtopicId ? getFirstEntryForSubtopic(hydratedData, nextSubtopicId)?.id : undefined);
         setAuthError(undefined);
         setAuthStatus('ready');
       } catch {
@@ -497,31 +507,30 @@ export function App() {
   function handleImportJson(json: string) {
     if (SERVER_API_BASE_URL && !canEdit(currentUser)) return;
     const imported = deserializeBoardData(json);
-    const firstSubtopic = imported.subtopics.find((subtopic) => !subtopic.hidden);
-    const nextSubtopicId = firstSubtopic?.id ?? 'sts';
+    const nextSubtopicId = getFirstVisibleSubtopicId(imported);
     setData(imported);
     setSelectedSubtopicId(nextSubtopicId);
-    setSelectedEntryId(getFirstEntryForSubtopic(imported, nextSubtopicId)?.id);
+    setSelectedEntryId(nextSubtopicId ? getFirstEntryForSubtopic(imported, nextSubtopicId)?.id : undefined);
     setPage('home');
   }
 
   function handleImportXlsx(file: ArrayBuffer) {
     if (SERVER_API_BASE_URL && !canEdit(currentUser)) return;
     const imported = importBoardDataFromXlsx(data, file);
-    const firstSubtopic = imported.subtopics.find((subtopic) => !subtopic.hidden);
-    const nextSubtopicId = firstSubtopic?.id ?? 'sts';
+    const nextSubtopicId = getFirstVisibleSubtopicId(imported);
     setData(imported);
     setSelectedSubtopicId(nextSubtopicId);
-    setSelectedEntryId(getFirstEntryForSubtopic(imported, nextSubtopicId)?.id);
+    setSelectedEntryId(nextSubtopicId ? getFirstEntryForSubtopic(imported, nextSubtopicId)?.id : undefined);
     setPage('home');
   }
 
   function handleReset() {
     if (SERVER_API_BASE_URL && !canEdit(currentUser)) return;
     const reset = resetBoardData();
+    const nextSubtopicId = getFirstVisibleSubtopicId(reset);
     setData(reset);
-    setSelectedSubtopicId('sts');
-    setSelectedEntryId(getFirstEntryForSubtopic(reset, 'sts')?.id);
+    setSelectedSubtopicId(nextSubtopicId);
+    setSelectedEntryId(nextSubtopicId ? getFirstEntryForSubtopic(reset, nextSubtopicId)?.id : undefined);
     setPage('home');
   }
 
@@ -533,13 +542,15 @@ export function App() {
       const session = await loginToServer(SERVER_API_BASE_URL, username, password);
       const boardData = await fetchBoardData(SERVER_API_BASE_URL, session.accessToken);
       const serverHasContent = hasBoardContent(boardData);
-      const hydratedData = serverHasContent ? boardData : seedData;
+      const hydratedData = serverHasContent ? boardData : emptyBoardData;
+      const nextSubtopicId = getFirstVisibleSubtopicId(hydratedData);
       lastSavedServerPayloadRef.current = serverHasContent ? JSON.stringify(hydratedData) : undefined;
       window.sessionStorage.setItem(SESSION_TOKEN_KEY, session.accessToken);
       setAuthToken(session.accessToken);
       setCurrentUser(session.user);
       setData(hydratedData);
-      setSelectedEntryId(getFirstEntryForSubtopic(hydratedData, selectedSubtopicId)?.id);
+      setSelectedSubtopicId(nextSubtopicId);
+      setSelectedEntryId(nextSubtopicId ? getFirstEntryForSubtopic(hydratedData, nextSubtopicId)?.id : undefined);
       setAuthStatus('ready');
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : '로그인에 실패했습니다.');
@@ -600,12 +611,10 @@ export function App() {
             <span className="menu-icon" aria-hidden="true"><FileText size={16} strokeWidth={2.2} /></span>
             <span className="menu-label">보고서</span>
           </button>
-          {(!SERVER_API_BASE_URL || canAdmin(currentUser)) && (
-            <button className={page === 'admin' ? 'is-active' : ''} type="button" onClick={() => setPage('admin')}>
-              <span className="menu-icon" aria-hidden="true"><Settings size={16} strokeWidth={2.2} /></span>
-              <span className="menu-label">관리자</span>
-            </button>
-          )}
+          <button className="sidebar-logout" type="button" onClick={handleLogout}>
+            <span className="menu-icon" aria-hidden="true"><LogOut size={16} strokeWidth={2.2} /></span>
+            <span className="menu-label">로그아웃</span>
+          </button>
         </nav>
         <div className="sidebar-user">
           <div className="sidebar-user__identity">
@@ -615,10 +624,12 @@ export function App() {
               <span>{currentUser ? currentUser.role : '연구기획팀'}</span>
             </div>
           </div>
-          <button className="sidebar-logout" type="button" onClick={handleLogout}>
-            <LogOut size={14} strokeWidth={2.2} />
-            <span>로그아웃</span>
-          </button>
+          {(!SERVER_API_BASE_URL || canAdmin(currentUser)) && (
+            <button className="sidebar-admin" type="button" onClick={() => setPage('admin')}>
+              <Settings size={14} strokeWidth={2.2} />
+              <span>관리자</span>
+            </button>
+          )}
         </div>
       </aside>
 

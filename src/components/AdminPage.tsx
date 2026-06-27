@@ -4,9 +4,11 @@ import {
   Database,
   FileSpreadsheet,
   Plus,
+  RotateCcw,
   Settings2,
   ShieldCheck,
   Trash2,
+  Upload,
 } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { getIssueLabelOptions, getOrderedRecordTypes, getOrderedStatuses, getRecordTypeLabels, getStatusLabels, getStatusPhase } from '../domain/options';
@@ -385,6 +387,28 @@ export function AdminPage({
       settings: {
         ...data.settings,
         labelOptions: nextOptions,
+      },
+    });
+  }
+
+  function updateReportHtmlTemplate(template: string, fileName: string) {
+    onChangeData?.({
+      ...data,
+      settings: {
+        ...data.settings,
+        reportHtmlTemplate: template,
+        reportHtmlTemplateName: fileName,
+      },
+    });
+  }
+
+  function resetReportHtmlTemplate() {
+    onChangeData?.({
+      ...data,
+      settings: {
+        ...data.settings,
+        reportHtmlTemplate: undefined,
+        reportHtmlTemplateName: undefined,
       },
     });
   }
@@ -864,13 +888,57 @@ export function AdminPage({
             <section className="admin-panel admin-panel--report-template" aria-label="보고서 바로가기">
               <div>
                 <h2>보고서 바로가기</h2>
-                <p>별도 양식 편집 화면이 아니라, 자주 쓰는 조건으로 보고서 탭을 바로 열어 Word/Excel 다운로드를 시작하는 영역입니다.</p>
+                <p>별도 양식 편집 화면이 아니라, 자주 쓰는 조건으로 보고서 탭을 바로 열어 HTML/Word/Excel 다운로드를 시작하는 영역입니다.</p>
               </div>
               <div className="admin-template-preview">
                 <span>다운로드 파일명</span>
                 <strong>선택범위_이력_보고서_YYYY-MM-DD</strong>
                 <span>포함 항목</span>
-                <strong>대분류, 하위 주제, 이슈, 세부 항목, 날짜별 이력, 첨부 URL</strong>
+                <strong>대분류, 하위 주제, 이슈, 세부 항목, 날짜별 이력, 첨부 URL, 브라우저용 HTML</strong>
+              </div>
+              <div className="admin-report-template-upload">
+                <div>
+                  <span>HTML 템플릿</span>
+                  <strong>{data.settings?.reportHtmlTemplateName ?? '기본 템플릿'}</strong>
+                </div>
+                <div className="admin-report-template-actions">
+                  <label className={`file-button ${!canEditBoardData ? 'is-disabled' : ''}`}>
+                    <Upload size={15} />
+                    템플릿 업로드
+                    <input
+                      accept=".html,text/html"
+                      disabled={!canEditBoardData}
+                      type="file"
+                      onChange={async (event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        updateReportHtmlTemplate(await file.text(), file.name);
+                        event.target.value = '';
+                      }}
+                    />
+                  </label>
+                  <button
+                    className="text-button"
+                    disabled={!canEditBoardData || !data.settings?.reportHtmlTemplate}
+                    type="button"
+                    onClick={resetReportHtmlTemplate}
+                  >
+                    <RotateCcw size={15} />
+                    기본 템플릿
+                  </button>
+                </div>
+                <div className="admin-report-template-tokens" aria-label="HTML 템플릿 토큰">
+                  {[
+                    'reportTitle',
+                    'generatedAt',
+                    'summaryCards',
+                    'issueCards',
+                    'historyRows',
+                    'filterText',
+                  ].map((token) => (
+                    <code key={token}>{`{{${token}}}`}</code>
+                  ))}
+                </div>
               </div>
               <div className="admin-report-actions" aria-label="보고서 바로가기">
                 <button className="primary-button" type="button" onClick={() => onOpenReport?.({})}>

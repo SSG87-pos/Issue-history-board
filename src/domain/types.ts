@@ -157,6 +157,8 @@ export type IssueBoardSettings = {
   labelOptions?: string[];
   customStatuses?: CustomStatusOption[];
   customRecordTypes?: CustomRecordTypeOption[];
+  reportHtmlTemplate?: string;
+  reportHtmlTemplateName?: string;
 };
 
 export type CustomStatusOption = {

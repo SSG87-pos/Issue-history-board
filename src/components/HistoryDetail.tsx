@@ -102,30 +102,30 @@ export function HistoryDetail({
         </div>
       </div>
 
-      <div className="issue-meta-strip">
-        <div>
-          <span>최초 보고일</span>
-          <strong>{detailIssue?.firstOccurredAt ?? selectedIssue.firstOccurredAt}</strong>
-        </div>
-        <div>
-          <span>우선순위</span>
-          <strong>{priorityLabel}</strong>
-        </div>
-        <div>
-          <span>담당자</span>
-          <strong>{ownerName}</strong>
-        </div>
-        <div>
-          <span>담당부서</span>
-          <strong>{ownerDepartment}</strong>
-        </div>
-        <div>
-          <span>유관부서</span>
-          <strong>{relatedDepartment}</strong>
-        </div>
-      </div>
-
       <div className="detail-body">
+        <div className="issue-meta-strip">
+          <div>
+            <span>최초 보고일</span>
+            <strong>{detailIssue?.firstOccurredAt ?? selectedIssue.firstOccurredAt}</strong>
+          </div>
+          <div>
+            <span>우선순위</span>
+            <strong>{priorityLabel}</strong>
+          </div>
+          <div>
+            <span>담당자</span>
+            <strong>{ownerName}</strong>
+          </div>
+          <div>
+            <span>담당부서</span>
+            <strong>{ownerDepartment}</strong>
+          </div>
+          <div>
+            <span>유관부서</span>
+            <strong>{relatedDepartment}</strong>
+          </div>
+        </div>
+
         <aside className="timeline-panel" aria-label="같은 이슈의 이력 목록">
           <div className="timeline-panel__header">
             <h3>이력 목록</h3>
@@ -175,11 +175,9 @@ export function HistoryDetail({
             {detailLines.length > 0 ? detailLines.map((line) => <li key={line}>{line}</li>) : <li>등록된 상세 내용이 없습니다.</li>}
           </ul>
 
+          <h4>향후 계획</h4>
           <div className="risk-check-grid">
-            <div>
-              <h4>향후 계획</h4>
-              <p>{selectedEntry.remainingRisk || '등록된 잔여 리스크가 없습니다.'}</p>
-            </div>
+            <p>{selectedEntry.remainingRisk || '등록된 잔여 리스크가 없습니다.'}</p>
           </div>
 
           <h4>첨부 URL</h4>

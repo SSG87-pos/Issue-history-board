@@ -2,6 +2,7 @@ import { FileSpreadsheet, FileText } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import {
   exportReportAsDocx,
+  exportReportAsHtml,
   exportReportDataAsXlsx,
   filterReportData,
   getReportRows,
@@ -111,6 +112,11 @@ export function ReportPage({ data, onImportJson, onImportXlsx, onReset, canManag
     downloadBytes(bytes, `${fileSafeName(reportTitle)}-${today()}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
   }
 
+  function downloadHtml() {
+    const bytes = exportReportAsHtml(data, { ...filters, title: reportTitle });
+    downloadBytes(bytes, `${fileSafeName(reportTitle)}-${today()}.html`, 'text/html;charset=utf-8');
+  }
+
   return (
     <section className="report-page" aria-label="보고서">
       <div className="report-page__heading">
@@ -123,7 +129,11 @@ export function ReportPage({ data, onImportJson, onImportXlsx, onReset, canManag
             <FileSpreadsheet size={16} />
             Excel 다운로드
           </button>
-          <button className="primary-button" type="button" onClick={downloadDocx}>
+          <button className="primary-button" type="button" onClick={downloadHtml}>
+            <FileText size={16} />
+            HTML 보고서
+          </button>
+          <button className="text-button" type="button" onClick={downloadDocx}>
             <FileText size={16} />
             Word 보고서
           </button>

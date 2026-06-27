@@ -79,7 +79,7 @@ export function AdminDataPanel({ data, onImportJson, onImportXlsx, onReset }: Ad
         </label>
         <button type="button" onClick={onReset}>
           <RotateCcw size={15} />
-          초기 데이터
+          빈 데이터
         </button>
       </div>
     </section>

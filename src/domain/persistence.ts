@@ -1,3 +1,4 @@
+import { emptyBoardData } from './emptyBoardData';
 import { seedData } from './seedData';
 import type { IssueBoardData } from './types';
 
@@ -27,12 +28,12 @@ function getDefaultStorage(): Storage | undefined {
 
 export function loadBoardData(storage: Storage | undefined = getDefaultStorage()): IssueBoardData {
   const raw = storage?.getItem(STORAGE_KEY);
-  if (!raw) return seedData;
+  if (!raw) return emptyBoardData;
 
   try {
     return deserializeBoardData(raw);
   } catch {
-    return seedData;
+    return emptyBoardData;
   }
 }
 
@@ -42,7 +43,7 @@ export function saveBoardData(data: IssueBoardData, storage: Storage | undefined
 
 export function resetBoardData(storage: Storage | undefined = getDefaultStorage()): IssueBoardData {
   storage?.removeItem(STORAGE_KEY);
-  return seedData;
+  return emptyBoardData;
 }
 
 function normalizeBoardData(data: IssueBoardData): IssueBoardData {
@@ -96,19 +97,24 @@ function normalizeBoardData(data: IssueBoardData): IssueBoardData {
           statusLabels: data.settings.statusLabels ? { ...data.settings.statusLabels } : undefined,
           statusOrder: Array.isArray(data.settings.statusOrder) ? [...data.settings.statusOrder] : undefined,
           hiddenStatuses: Array.isArray(data.settings.hiddenStatuses) ? [...data.settings.hiddenStatuses] : undefined,
+          reportHtmlTemplate: typeof data.settings.reportHtmlTemplate === 'string' ? data.settings.reportHtmlTemplate : undefined,
+          reportHtmlTemplateName:
+            typeof data.settings.reportHtmlTemplateName === 'string' ? data.settings.reportHtmlTemplateName : undefined,
         }
       : undefined,
   };
 
-  for (const seedCategory of seedData.categories) {
-    if (!normalized.categories.some((category) => category.id === seedCategory.id)) {
-      normalized.categories.push(seedCategory);
+  if (normalized.categories.length > 0 || normalized.subtopics.length > 0) {
+    for (const seedCategory of seedData.categories) {
+      if (!normalized.categories.some((category) => category.id === seedCategory.id)) {
+        normalized.categories.push(seedCategory);
+      }
     }
-  }
 
-  for (const seedSubtopic of seedData.subtopics) {
-    if (!normalized.subtopics.some((subtopic) => subtopic.id === seedSubtopic.id)) {
-      normalized.subtopics.push(seedSubtopic);
+    for (const seedSubtopic of seedData.subtopics) {
+      if (!normalized.subtopics.some((subtopic) => subtopic.id === seedSubtopic.id)) {
+        normalized.subtopics.push(seedSubtopic);
+      }
     }
   }
 

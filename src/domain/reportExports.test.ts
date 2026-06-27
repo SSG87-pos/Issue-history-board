@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { exportReportAsDocx, exportReportDataAsXlsx, filterReportData } from './reportExports';
+import { exportReportAsDocx, exportReportAsHtml, exportReportDataAsXlsx, filterReportData } from './reportExports';
 import { seedData } from './seedData';
 
 const decoder = new TextDecoder();
@@ -44,6 +44,56 @@ describe('report exports', () => {
     expect(text).toContain('시험 조건 편차 원인 검토');
     expect(text).toContain('담당: 박연구');
     expect(text).not.toContain('공동연구 샘플 반출 승인 지연');
+  });
+
+  it('exports a styled HTML report for browser reading and printing', () => {
+    const html = exportReportAsHtml(seedData, {
+      subtopicId: 'sts',
+      title: 'STS HTML 보고서',
+    });
+    const text = decoder.decode(html);
+
+    expect(text).toContain('<!doctype html>');
+    expect(text).toContain('STS HTML 보고서');
+    expect(text).toContain('PosLAB 이력관리 센터');
+    expect(text).toContain('STS 내식성 시험 조건 이슈');
+    expect(text).toContain('시험 조건 편차 원인 검토');
+    expect(text).toContain('status-pill');
+    expect(text).not.toContain('공동연구 샘플 반출 승인 지연');
+  });
+
+  it('renders uploaded HTML templates with report tokens and removes scripts', () => {
+    const html = exportReportAsHtml(
+      {
+        ...seedData,
+        settings: {
+          ...seedData.settings,
+          reportHtmlTemplate: `
+            <html>
+              <body onload="alert('x')">
+                <script>alert('x')</script>
+                <h1>{{ reportTitle }}</h1>
+                <p>{{generatedAt}}</p>
+                <section>{{summaryCards}}</section>
+                <main>{{issueCards}}</main>
+              </body>
+            </html>
+          `,
+          reportHtmlTemplateName: 'custom.html',
+        },
+      },
+      {
+        subtopicId: 'sts',
+        title: '커스텀 HTML 보고서',
+      },
+    );
+    const text = decoder.decode(html);
+
+    expect(text).toContain('커스텀 HTML 보고서');
+    expect(text).toContain('STS 내식성 시험 조건 이슈');
+    expect(text).toContain('class="stat"');
+    expect(text).not.toContain('<script>');
+    expect(text).not.toContain('onload=');
   });
 
   it('exports configured status and record type labels in Word reports', () => {
@@ -97,5 +147,16 @@ describe('report exports', () => {
     expect(text).toContain('이력: 0건');
     expect(text).toContain('선택한 조건에 해당하는 이력이 없습니다.');
     expect(text).toContain('기간 2026-06-26 ~ 2026-06-27');
+
+    const html = decoder.decode(
+      exportReportAsHtml(seedData, {
+        subtopicId: 'sts',
+        dateFrom: '2026-06-26',
+        dateTo: '2026-06-27',
+        title: 'STS 빈 결과 HTML 보고서',
+      }),
+    );
+    expect(html).toContain('STS 빈 결과 HTML 보고서');
+    expect(html).toContain('선택한 조건에 해당하는 이력이 없습니다.');
   });
 });

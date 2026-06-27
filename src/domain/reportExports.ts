@@ -107,6 +107,351 @@ export function exportReportDataAsXlsx(data: IssueBoardData, filters: ReportFilt
   return exportBoardDataAsXlsx(filterReportData(data, filters));
 }
 
+export function exportReportAsHtml(data: IssueBoardData, options: ReportExportOptions = {}): Uint8Array {
+  const filtered = filterReportData(data, options);
+  const rows = getReportRows(filtered);
+  const title = options.title?.trim() || '이슈 이력 보고서';
+  const generatedAt = new Date().toISOString().slice(0, 10);
+  const statusLabels = getStatusLabels(filtered);
+  const recordTypeLabels = getRecordTypeLabels(filtered);
+  const issueCount = new Set(rows.map((row) => row.issue.id)).size;
+  const detailCount = new Set(rows.map((row) => row.entry.detailIssueId)).size;
+  const issueBlocks = groupRowsByIssue(rows)
+    .map(([issue, issueRows]) => {
+      const phase = getStatusPhase(filtered, issue.status);
+      return `<section class="issue-card">
+        <div class="issue-card__head">
+          <div>
+            <p>${escapeHtml(getScopeLabel(issueRows[0]))}</p>
+            <h2>${escapeHtml(issue.title)}</h2>
+          </div>
+          <span class="status-pill status-pill--${phase}">${escapeHtml(statusLabels[issue.status])}</span>
+        </div>
+        <div class="issue-card__summary">
+          <span>최근 갱신 <strong>${escapeHtml(issue.latestUpdatedAt)}</strong></span>
+          <span>담당 <strong>${escapeHtml(issue.ownerName || issueRows[0]?.ownerLabel || '-')}</strong></span>
+          <span>이력 <strong>${issueRows.length}건</strong></span>
+        </div>
+        <p class="issue-card__description">${escapeHtml(issue.currentSummary)}</p>
+        <ol class="timeline">
+          ${issueRows
+            .map((row) => {
+              const entryPhase = getStatusPhase(filtered, row.entry.status);
+              return `<li>
+                <div class="timeline__meta">
+                  <time>${escapeHtml(row.entry.date)}</time>
+                  <span>${escapeHtml(row.detailTitle)}</span>
+                  <small>${escapeHtml(recordTypeLabels[row.entry.recordType ?? 'other'])}</small>
+                </div>
+                <div class="timeline__body">
+                  <div>
+                    <strong>${escapeHtml(row.entry.summary)}</strong>
+                    <p>${escapeHtml(row.entry.details)}</p>
+                    ${
+                      row.entry.remainingRisk
+                        ? `<p class="timeline__risk">향후 계획: ${escapeHtml(row.entry.remainingRisk)}</p>`
+                        : ''
+                    }
+                  </div>
+                  <span class="status-pill status-pill--${entryPhase}">${escapeHtml(statusLabels[row.entry.status])}</span>
+                </div>
+              </li>`;
+            })
+            .join('')}
+        </ol>
+      </section>`;
+    })
+    .join('');
+  const emptyBlock = '<div class="empty">선택한 조건에 해당하는 이력이 없습니다.</div>';
+  const issueContent = rows.length > 0 ? issueBlocks : emptyBlock;
+  const summaryCards = [
+    ['이력', rows.length],
+    ['이슈', issueCount],
+    ['세부 항목', detailCount],
+  ]
+    .map(([label, value]) => `<div class="stat"><span>${escapeHtml(String(label))}</span><strong>${value}</strong></div>`)
+    .join('');
+  const historyRows = rows
+    .map(
+      (row) => `<tr>
+        <td>${escapeHtml(row.entry.date)}</td>
+        <td>${escapeHtml(row.categoryLabel)} / ${escapeHtml(row.subtopicLabel)}</td>
+        <td>${escapeHtml(row.issueTitle)}</td>
+        <td>${escapeHtml(row.detailTitle)}</td>
+        <td>${escapeHtml(statusLabels[row.entry.status])}</td>
+        <td>${escapeHtml(row.entry.summary)}</td>
+      </tr>`,
+    )
+    .join('');
+  const templateSource = filtered.settings?.reportHtmlTemplate?.trim();
+  if (templateSource) {
+    return encoder.encode(
+      renderUploadedHtmlTemplate(templateSource, {
+        detailCount,
+        filterText: getFilterText(options),
+        generatedAt,
+        historyCount: rows.length,
+        historyRows,
+        issueCards: issueContent,
+        issueCount,
+        reportTitle: title,
+        summaryCards,
+        templateLabel: REPORT_TEMPLATE_LABELS[options.template ?? 'history'],
+      }),
+    );
+  }
+
+  const html = `<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${escapeHtml(title)}</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #65758a;
+      --line: #dce5f1;
+      --paper: #ffffff;
+      --wash: #f4f7fb;
+      --blue: #2f67d8;
+      --blue-soft: #edf4ff;
+      --green: #257451;
+      --orange: #9a4f17;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #f8fbff 0%, #eef5fb 100%);
+      color: var(--ink);
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+      line-height: 1.58;
+    }
+    .report {
+      width: min(1080px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 42px 0 56px;
+    }
+    .hero {
+      display: grid;
+      gap: 22px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--paper);
+      padding: 30px;
+      box-shadow: 0 18px 46px rgba(38, 55, 79, 0.08);
+    }
+    .hero__eyebrow {
+      margin: 0 0 8px;
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 900;
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(30px, 5vw, 54px);
+      letter-spacing: 0;
+      line-height: 1.05;
+    }
+    .hero__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .hero__meta li,
+    .stat {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--wash);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+      padding: 7px 11px;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .stat {
+      display: grid;
+      gap: 4px;
+      border-radius: 10px;
+      padding: 14px;
+    }
+    .stat strong {
+      color: var(--ink);
+      font-size: 24px;
+      line-height: 1;
+    }
+    .issue-list {
+      display: grid;
+      gap: 16px;
+      margin-top: 18px;
+    }
+    .issue-card {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      padding: 22px;
+      box-shadow: 0 12px 30px rgba(38, 55, 79, 0.055);
+      break-inside: avoid;
+    }
+    .issue-card__head,
+    .timeline__body {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .issue-card__head p {
+      margin: 0 0 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+    }
+    .issue-card h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.25;
+    }
+    .issue-card__summary {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+    .issue-card__summary span {
+      border-radius: 999px;
+      background: var(--wash);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      padding: 6px 10px;
+    }
+    .issue-card__summary strong { color: var(--ink); }
+    .issue-card__description {
+      margin: 14px 0 0;
+      color: #334258;
+      font-weight: 760;
+    }
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 72px;
+      border: 1px solid #cfe0ff;
+      border-radius: 999px;
+      background: var(--blue-soft);
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 950;
+      padding: 6px 10px;
+      white-space: nowrap;
+    }
+    .status-pill--received {
+      border-color: #f4d5bf;
+      background: #fff7ef;
+      color: var(--orange);
+    }
+    .status-pill--closed {
+      border-color: #cde9dc;
+      background: #f1fbf6;
+      color: var(--green);
+    }
+    .timeline {
+      display: grid;
+      gap: 10px;
+      margin: 18px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    .timeline li {
+      display: grid;
+      gap: 8px;
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+    .timeline__meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+    .timeline__meta time {
+      color: var(--blue);
+      font-weight: 950;
+    }
+    .timeline__body strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+    .timeline__body p {
+      margin: 0;
+      color: #44546a;
+      font-size: 13px;
+    }
+    .timeline__risk {
+      margin-top: 6px !important;
+      color: #7b4d19 !important;
+      font-weight: 850;
+    }
+    .empty {
+      margin-top: 18px;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+      color: var(--muted);
+      padding: 28px;
+      text-align: center;
+      font-weight: 850;
+    }
+    @media print {
+      body { background: #fff; }
+      .report { width: 100%; padding: 0; }
+      .hero, .issue-card { box-shadow: none; }
+    }
+    @media (max-width: 720px) {
+      .report { width: min(100% - 24px, 1080px); padding-top: 22px; }
+      .hero, .issue-card { padding: 18px; }
+      .stats { grid-template-columns: 1fr; }
+      .issue-card__head, .timeline__body { display: grid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="report">
+    <section class="hero">
+      <div>
+        <p class="hero__eyebrow">PosLAB 이력관리 센터</p>
+        <h1>${escapeHtml(title)}</h1>
+      </div>
+      <ul class="hero__meta">
+        <li>생성일 ${escapeHtml(generatedAt)}</li>
+        <li>${escapeHtml(REPORT_TEMPLATE_LABELS[options.template ?? 'history'])}</li>
+        <li>${escapeHtml(getFilterText(options))}</li>
+      </ul>
+      <div class="stats">
+        ${summaryCards}
+      </div>
+    </section>
+    <section class="issue-list">
+      ${issueContent}
+    </section>
+  </main>
+</body>
+</html>`;
+
+  return encoder.encode(html);
+}
+
 export function exportReportAsDocx(data: IssueBoardData, options: ReportExportOptions = {}): Uint8Array {
   const filtered = filterReportData(data, options);
   const rows = getReportRows(filtered);
@@ -226,6 +571,52 @@ function groupRowsByIssue(rows: ReportRow[]): [IssueGroup, ReportRow[]][] {
   return [...groups.values()];
 }
 
+function getScopeLabel(row: ReportRow | undefined): string {
+  if (!row) return '전체';
+  return [row.categoryLabel, row.subtopicLabel, row.detailTitle].filter(Boolean).join(' / ');
+}
+
+type HtmlTemplateTokens = {
+  reportTitle: string;
+  generatedAt: string;
+  templateLabel: string;
+  filterText: string;
+  historyCount: number;
+  issueCount: number;
+  detailCount: number;
+  summaryCards: string;
+  issueCards: string;
+  historyRows: string;
+};
+
+function renderUploadedHtmlTemplate(template: string, tokens: HtmlTemplateTokens): string {
+  const safeTemplate = sanitizeUploadedTemplate(template);
+  const replacements: Record<string, string> = {
+    detailCount: String(tokens.detailCount),
+    filterText: escapeHtml(tokens.filterText),
+    generatedAt: escapeHtml(tokens.generatedAt),
+    historyCount: String(tokens.historyCount),
+    historyRows: tokens.historyRows,
+    issueCards: tokens.issueCards,
+    issueCount: String(tokens.issueCount),
+    reportTitle: escapeHtml(tokens.reportTitle),
+    summaryCards: tokens.summaryCards,
+    templateLabel: escapeHtml(tokens.templateLabel),
+  };
+  const rendered = safeTemplate.replace(/\{\{\s*(\w+)\s*\}\}/g, (match, key: string) => replacements[key] ?? match);
+  const hasContentToken = /\{\{\s*(issueCards|historyRows)\s*\}\}/.test(safeTemplate);
+  return hasContentToken ? rendered : `${rendered}\n${tokens.issueCards}`;
+}
+
+function sanitizeUploadedTemplate(template: string): string {
+  return template
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/\son\w+\s*=\s*"[^"]*"/gi, '')
+    .replace(/\son\w+\s*=\s*'[^']*'/gi, '')
+    .replace(/\son\w+\s*=\s*[^\s>]+/gi, '')
+    .replace(/javascript:/gi, '');
+}
+
 function paragraph(value: string, style?: 'Title' | 'Heading2'): string {
   const styleXml = style ? `<w:pPr><w:pStyle w:val="${style}"/></w:pPr>` : '';
   const text = escapeXml(value);
@@ -330,4 +721,8 @@ function escapeXml(value: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
+}
+
+function escapeHtml(value: string): string {
+  return escapeXml(value);
 }

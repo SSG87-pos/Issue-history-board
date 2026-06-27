@@ -50,6 +50,12 @@ export function HomeDashboard({
           <h2>카테고리별 현황</h2>
         </div>
         <div className="category-grid">
+          {categories.length === 0 && (
+            <div className="home-empty-state">
+              <strong>등록된 대분류가 없습니다.</strong>
+              <span>관리자 화면에서 대분류와 하위 주제를 추가하면 현황 카드가 표시됩니다.</span>
+            </div>
+          )}
           {categories
             .slice()
             .sort((a, b) => a.order - b.order)

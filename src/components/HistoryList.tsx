@@ -258,6 +258,9 @@ export function HistoryList({
         <div className="issue-group-list" aria-label="이슈별 모음">
           {filteredIssues.map(({ issue, issueEntries }) => {
             const latestEntry = issueEntries[0];
+            const latestDetailIssue = latestEntry ? detailIssueById.get(latestEntry.detailIssueId) : undefined;
+            const ownerName = latestDetailIssue?.ownerName ?? issue.ownerName ?? latestEntry?.authorName ?? '담당자 미정';
+            const ownerDepartment = latestDetailIssue?.ownerResearchGroup ?? issue.ownerResearchGroup ?? getFallbackResearchGroup(issue.categoryId);
             const isSelected = issueEntries.some((entry) => entry.id === selectedEntryId);
             const issuePhase = getStatusPhase(data, issue.status);
             return (
@@ -281,7 +284,7 @@ export function HistoryList({
                 <p>{issue.currentSummary}</p>
                 <div className="issue-group-row__footer">
                   <span>최근 {latestEntry?.date ?? issue.latestUpdatedAt}</span>
-                  <span>{issue.ownerName ?? '담당자 미정'} · {issue.ownerResearchGroup ?? '담당부서 미정'}</span>
+                  <span>{ownerName} · {ownerDepartment}</span>
                 </div>
               </button>
             );
@@ -291,4 +294,11 @@ export function HistoryList({
       )}
     </section>
   );
+}
+
+function getFallbackResearchGroup(categoryId: string) {
+  if (categoryId === 'equipment-test') return '시험분석연구그룹';
+  if (categoryId === 'investment-project') return '투자과제기획그룹';
+  if (categoryId === 'system-operation') return '연구운영기획그룹';
+  return '강종솔루션연구그룹';
 }

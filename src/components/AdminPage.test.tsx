@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { seedData } from '../domain/seedData';
 import { AdminPage } from './AdminPage';
@@ -140,12 +140,29 @@ describe('AdminPage', () => {
     );
   });
 
-  it('opens report presets from the report shortcut module', () => {
+  it('opens report presets and manages HTML report templates from the report shortcut module', async () => {
     const handleOpenReport = vi.fn();
-    renderAdminPage({ onOpenReport: handleOpenReport });
+    const handleChangeData = vi.fn();
+    renderAdminPage({ onChangeData: handleChangeData, onOpenReport: handleOpenReport });
 
     fireEvent.click(screen.getByRole('button', { name: /보고서 바로가기/ }));
     expect(screen.getByRole('region', { name: '보고서 바로가기' })).toBeTruthy();
+    expect(screen.getByLabelText('HTML 템플릿 토큰').textContent).toContain('{{issueCards}}');
+
+    const file = new File(['<html><body>{{reportTitle}}{{issueCards}}</body></html>'], 'team-report.html', {
+      type: 'text/html',
+    });
+    fireEvent.change(screen.getByLabelText('템플릿 업로드'), { target: { files: [file] } });
+    await waitFor(() =>
+      expect(handleChangeData).toHaveBeenCalledWith(
+        expect.objectContaining({
+          settings: expect.objectContaining({
+            reportHtmlTemplate: '<html><body>{{reportTitle}}{{issueCards}}</body></html>',
+            reportHtmlTemplateName: 'team-report.html',
+          }),
+        }),
+      ),
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /강종\/제품 \/ STS/ }));
 
