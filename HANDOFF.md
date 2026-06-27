@@ -12,7 +12,7 @@ Use this file with `AGENTS.md`, `DESIGN.md`, `docs/current-ui-decisions.md`, `do
 
 ## Current State
 
-The `main` branch now carries the latest design, report, backend, and agent guardrail work. The active branch `codex/design-readability-refresh` is kept aligned with `main` for continuation convenience.
+The `main` branch now carries the latest design, report, backend, and agent guardrail work. Continue from `main` unless there is a specific reason to inspect older feature branches. The local `codex/design-readability-refresh` branch contains a workflow-file experiment that could not be pushed because the current GitHub token lacks `workflow` scope.
 
 The latest UI direction is a restrained, light internal operations dashboard:
 
