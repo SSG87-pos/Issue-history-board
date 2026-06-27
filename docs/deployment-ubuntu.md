@@ -72,9 +72,9 @@ pnpm check:deployment -- --with-docker
 
 `scripts/company-run.sh check`는 Node/pnpm이 없는 Ubuntu 서버에서도 `.env`의 필수 시크릿, 포트, CORS 형식과 `docker compose config`를 확인한다. `up`은 컨테이너를 띄운 뒤 `http://127.0.0.1:<WEB_PORT>/health`가 응답할 때까지 기다리고, 실패하면 최근 `api`/`web` 로그를 보여준다. `pnpm check:deployment`는 개발/CI 환경에서 배포 파일과 필수 프록시/환경 구성을 정적으로 확인한다. `--with-docker` 명령은 Docker가 설치된 서버에서 `docker compose config`까지 확인한다.
 
-GitHub Actions의 `CI` 워크플로는 push, pull request, 수동 실행에서 같은 검증 묶음을 자동으로 실행한다. 포함 범위는 백엔드 API 테스트, 프론트 단위 테스트, 프로덕션 빌드, Docker Compose 배포 구성 확인, 로컬 브라우저 E2E, FastAPI/Vite 서버 연결 E2E다. 실패 시 Playwright 리포트와 trace가 artifact로 남는다.
+GitHub Actions 워크플로 파일은 현재 `main`에 포함되어 있지 않다. 저장소 push 토큰에 `workflow` scope를 추가한 뒤 `.github/workflows`를 커밋하면 같은 검증 묶음을 push, pull request, 수동 실행에서 자동화할 수 있다. 그 전까지는 아래 명령을 로컬 또는 회사 서버에서 직접 실행한다.
 
-GitHub Pages 워크플로는 `main` push 또는 수동 실행에서 `/Issue-history-board/` 정적 데모를 빌드하고 `pnpm test:e2e:pages`로 검증한 뒤 GitHub Pages에 배포한다. 배포 후에는 `pnpm test:e2e:pages:live:current`를 다시 실행해 공개 URL이 방금 만든 asset을 서빙하는지 확인한다. 저장소 Pages 설정은 GitHub Actions 배포를 사용하도록 맞춘다.
+GitHub Pages는 `gh-pages` 브랜치 배포 기준으로 운영한다. `/Issue-history-board/` 정적 데모를 갱신한 뒤에는 `pnpm test:e2e:pages:live:current`를 실행해 공개 URL이 방금 만든 asset을 서빙하는지 확인한다. Actions 기반 Pages 배포로 전환하려면 workflow 파일을 커밋하고 저장소 Pages 설정을 GitHub Actions 배포로 맞춘다.
 
 ## 4. 최초 운영 흐름
 
@@ -85,7 +85,7 @@ GitHub Pages 워크플로는 `main` push 또는 수동 실행에서 `/Issue-hist
 5. 사용자 행에서 역할을 `viewer`, `editor`, `admin` 중 하나로 바꾼다.
 6. 퇴사, 부서 이동, 임시 차단이 필요하면 사용자 행의 활성 체크를 끈다.
 7. 비밀번호를 잊은 사용자는 새 비밀번호를 입력하고 `재설정`을 누른다.
-8. 서버 DB가 비어 있으면 첫 로그인 후 프론트 기본 시연 데이터가 서버에 저장된다.
+8. 서버 DB가 비어 있으면 빈 보드로 시작한다. 운영 데이터는 관리자 `분류 관리`에서 대분류와 하위 주제를 추가하거나, 기존 JSON 백업을 가져와 채운다.
 9. 마지막 활성 관리자 계정은 비활성화하거나 권한을 낮출 수 없도록 API에서 차단한다.
 10. 관리자 `분류 관리`에서 대분류와 하위 주제명을 수정한다.
 11. 관리자 `데이터 관리`에서 JSON/Excel 내보내기와 가져오기를 확인한다.

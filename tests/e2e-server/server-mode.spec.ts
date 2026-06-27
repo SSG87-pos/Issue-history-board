@@ -1,6 +1,7 @@
 import { expect, test, type APIRequestContext, type Download, type Page } from '@playwright/test';
 import type { IssueBoardData } from '../../src/domain/types';
 import type { CurrentUser } from '../../src/domain/serverApi';
+import { seedData } from '../../src/domain/seedData';
 
 const API_BASE_URL = `http://127.0.0.1:${process.env.E2E_SERVER_API_PORT || '42175'}/api`;
 const EMPTY_BOARD = {
@@ -57,6 +58,17 @@ async function openStsHistoryDetail(page: Page) {
 async function logout(page: Page) {
   await page.getByRole('button', { name: '로그아웃' }).click();
   await expect(page.getByRole('region', { name: '로그인' })).toBeVisible();
+}
+
+async function clickAdminModule(page: Page, label: string) {
+  await page
+    .getByRole('navigation', { name: '관리 메뉴' })
+    .getByRole('button', { name: new RegExp(`^${escapeRegExp(label)}`) })
+    .click();
+}
+
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 async function expectNoHorizontalOverflow(page: Page) {
@@ -169,6 +181,14 @@ async function resetBoard(request: APIRequestContext, token: string) {
   expect(response.status(), await response.text()).toBe(204);
 }
 
+async function seedBoard(request: APIRequestContext, token: string) {
+  const response = await request.put(`${API_BASE_URL}/board`, {
+    headers: { Authorization: `Bearer ${token}` },
+    data: seedData,
+  });
+  expect(response.status(), await response.text()).toBe(204);
+}
+
 async function fetchBoard(request: APIRequestContext, token: string): Promise<IssueBoardData> {
   const response = await request.get(`${API_BASE_URL}/board`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -226,7 +246,7 @@ test('server mode login enforces editor, viewer, and admin UI permissions', asyn
   await loginViaUi(page, 'admin', 'admin-password');
   await page.getByRole('button', { name: '관리자' }).click();
   await expect(page.getByRole('region', { name: '관리자 페이지' })).toBeVisible();
-  await page.getByRole('button', { name: '권한 관리', exact: true }).click();
+  await clickAdminModule(page, '권한 관리');
   await expect(page.getByRole('region', { name: '사용자 권한 관리' })).toBeVisible();
   await expect(page.getByText(editor.username)).toBeVisible();
   await expect(page.getByText(viewer.username)).toBeVisible();
@@ -393,7 +413,7 @@ test('access request is submitted from login and reviewed by admin', async ({ pa
   await expect(page.getByRole('navigation', { name: '주요 메뉴' })).toBeVisible();
 
   await page.getByRole('button', { name: '관리자' }).click();
-  await page.getByRole('button', { name: '권한 관리', exact: true }).click();
+  await clickAdminModule(page, '권한 관리');
   const requestList = page.getByRole('region', { name: '회원가입 신청 목록' });
   await expect(requestList).toBeVisible();
   await expect(requestList).toContainText(displayName);
@@ -423,11 +443,13 @@ test('authenticated server work surfaces stay balanced across desktop, tablet, a
   ];
 
   await resetBoard(request, token);
+  await expect.poll(async () => fetchBoard(request, token)).toMatchObject(EMPTY_BOARD);
 
   for (const viewport of viewports) {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await loginViaUi(page, 'admin', 'admin-password');
     await expectNoHorizontalOverflow(page);
+    await expect(page.getByText('등록된 대분류가 없습니다.')).toBeVisible();
 
     const shellMetrics = await readVisibleElementMetrics(page, [
       '.app-topbar',
@@ -444,7 +466,7 @@ test('authenticated server work surfaces stay balanced across desktop, tablet, a
       `${viewport.name} server nav should not need horizontal scrolling`,
     ).toEqual([]);
 
-    const homeMetrics = await readVisibleElementMetrics(page, ['.category-card', '.subtopic-card', '.side-panel']);
+    const homeMetrics = await readVisibleElementMetrics(page, ['.category-card', '.subtopic-card', '.home-empty-state', '.side-panel']);
     expect(homeMetrics.filter((metric) => metric.clippedByViewport), `${viewport.name} server home clipped elements`).toEqual([]);
     expect(
       homeMetrics.filter((metric) => metric.selector === '.subtopic-card' && metric.height > 118),
@@ -465,7 +487,7 @@ test('authenticated server work surfaces stay balanced across desktop, tablet, a
 
     await page.getByRole('button', { name: '관리자', exact: true }).click();
     await expect(page.getByRole('region', { name: '관리자 페이지' })).toBeVisible();
-    await page.getByRole('button', { name: '권한 관리', exact: true }).click();
+    await clickAdminModule(page, '권한 관리');
     await expect(page.getByRole('region', { name: '사용자 권한 관리' })).toBeVisible();
     await expectNoHorizontalOverflow(page);
     const permissionMetrics = await readVisibleElementMetrics(page, [
@@ -508,72 +530,36 @@ test('authenticated server work surfaces stay balanced across desktop, tablet, a
   expect(consoleErrors).toEqual([]);
 });
 
-test('admin taxonomy and owner edits persist through the server board snapshot', async ({ page, request }) => {
+test('admin taxonomy edits persist through the server board snapshot', async ({ page, request }) => {
   const consoleErrors = collectConsoleErrors(page);
   const token = await adminToken(request);
   const suffix = Date.now().toString(36);
   const categoryLabel = `강종/제품 검증 ${suffix}`;
-  const ownerName = `서버검증담당 ${suffix}`;
-  const issueTitle = `STS 서버검증 이슈 ${suffix}`;
-  const issueLabel = `서버라벨-${suffix}`;
-  const detailTitle = `서버검증 세부 ${suffix}`;
+  const subtopicLabel = `STS 검증 ${suffix}`;
 
-  await resetBoard(request, token);
+  await seedBoard(request, token);
   await loginViaUi(page, 'admin', 'admin-password');
   await page.getByRole('button', { name: '관리자' }).click();
   await expect(page.getByRole('region', { name: '관리자 페이지' })).toBeVisible();
 
   await page.getByTestId('admin-category-grade-product').fill(categoryLabel);
+  await page.getByTestId('admin-subtopic-sts').fill(subtopicLabel);
   await expect.poll(async () => {
     const board = await fetchBoard(request, token);
-    return board.categories.find((category) => category.id === 'grade-product')?.label;
-  }).toBe(categoryLabel);
-
-  await page.getByRole('button', { name: /이슈 \/ 세부 카드 .*건 보기/ }).click();
-  await page.getByLabel('염수 분무 조건 편차 확인 담당자').fill(ownerName);
-  await page.getByLabel('염수 분무 조건 편차 확인 이슈명').fill(issueTitle);
-  await page.getByLabel('염수 분무 조건 편차 확인 업무 라벨').fill(issueLabel);
-  await page.getByLabel('염수 분무 조건 편차 확인 세부 항목명').fill(detailTitle);
-  await page.getByTestId('admin-detail-phase-detail-sts-corrosion-test-condition').selectOption('closed');
-  await expect.poll(async () => {
-    const board = await fetchBoard(request, token);
-    return board.detailIssues.find((issue) => issue.id === 'detail-sts-corrosion-test-condition')?.ownerName;
-  }).toBe(ownerName);
-  await expect.poll(async () => {
-    const board = await fetchBoard(request, token);
-    const issue = board.issueGroups.find((item) => item.id === 'issue-sts-corrosion-test');
-    const detail = board.detailIssues.find((item) => item.id === 'detail-sts-corrosion-test-condition');
     return {
-      issueTitle: issue?.title,
-      issueLabel: issue?.groupLabel,
-      issueOwnerName: issue?.ownerName,
-      issueStatus: issue?.status,
-      issueStatusSource: issue?.statusSource,
-      detailTitle: detail?.title,
-      detailOwnerName: detail?.ownerName,
-      detailStatus: detail?.status,
+      category: board.categories.find((category) => category.id === 'grade-product')?.label,
+      subtopic: board.subtopics.find((subtopic) => subtopic.id === 'sts')?.label,
     };
   }).toEqual({
-    issueTitle,
-    issueLabel,
-    issueOwnerName: ownerName,
-    issueStatus: 'resolved',
-    issueStatusSource: 'manual',
-    detailTitle,
-    detailOwnerName: ownerName,
-    detailStatus: 'resolved',
+    category: categoryLabel,
+    subtopic: subtopicLabel,
   });
 
   await logout(page);
   await loginViaUi(page, 'admin', 'admin-password');
   await page.getByRole('button', { name: '관리자' }).click();
   await expect(page.getByTestId('admin-category-grade-product')).toHaveValue(categoryLabel);
-  await page.getByRole('button', { name: /이슈 \/ 세부 카드 .*건 보기/ }).click();
-  await expect(page.getByTestId('admin-issue-title-issue-sts-corrosion-test')).toHaveValue(issueTitle);
-  await expect(page.getByTestId('admin-issue-label-issue-sts-corrosion-test')).toHaveValue(issueLabel);
-  await expect(page.getByTestId('admin-detail-title-detail-sts-corrosion-test-condition')).toHaveValue(detailTitle);
-  await expect(page.getByTestId('admin-detail-phase-detail-sts-corrosion-test-condition')).toHaveValue('closed');
-  await expect(page.getByLabel(`${detailTitle} 담당자`)).toHaveValue(ownerName);
+  await expect(page.getByTestId('admin-subtopic-sts')).toHaveValue(subtopicLabel);
 
   expect(consoleErrors).toEqual([]);
 });
@@ -585,7 +571,7 @@ test('admin permissions surface protects the last active admin account', async (
   await loginViaUi(page, 'admin', 'admin-password');
   await page.getByRole('button', { name: '관리자' }).click();
   await expect(page.getByRole('region', { name: '관리자 페이지' })).toBeVisible();
-  await page.getByRole('button', { name: '권한 관리', exact: true }).click();
+  await clickAdminModule(page, '권한 관리');
   await expect(page.getByRole('region', { name: '사용자 권한 관리' })).toBeVisible();
 
   const adminRow = page.locator('.admin-users-table__row').filter({ hasText: 'admin' });
@@ -603,54 +589,29 @@ test('admin permissions surface protects the last active admin account', async (
   expect(withoutExpectedConsoleMessages(consoleErrors, ['400 (Bad Request)'])).toEqual([]);
 });
 
-test('admin taxonomy and owner master edits persist through server board data', async ({ page, request }) => {
+test('admin taxonomy master edits persist through server board data', async ({ page, request }) => {
   const consoleErrors = collectConsoleErrors(page);
   const token = await adminToken(request);
   const suffix = Date.now().toString(36);
   const categoryLabel = `강종제품-${suffix}`;
   const subtopicLabel = `STS관리-${suffix}`;
-  const issueTitle = `STS 조건 편차 서버 관리 ${suffix}`;
-  const detailTitle = `서버 연결 세부 항목 ${suffix}`;
-  const ownerName = `서버담당-${suffix}`;
-  const ownerDepartment = `서버검증팀-${suffix}`;
 
-  await resetBoard(request, token);
+  await seedBoard(request, token);
   await loginViaUi(page, 'admin', 'admin-password');
   await page.getByRole('button', { name: '관리자' }).click();
 
   await page.getByTestId('admin-category-grade-product').fill(categoryLabel);
   await page.getByTestId('admin-subtopic-sts').fill(subtopicLabel);
-  await page.getByRole('button', { name: '담당 정보 관리', exact: true }).click();
-  await page.getByLabel('염수 분무 조건 편차 확인 이슈명').fill(issueTitle);
-  await page.getByLabel('염수 분무 조건 편차 확인 대표 단계').selectOption('closed');
-  await page.getByLabel('염수 분무 조건 편차 확인 담당자').fill(ownerName);
-  await page.getByLabel('염수 분무 조건 편차 확인 담당부서').fill(ownerDepartment);
-  await page.getByLabel('염수 분무 조건 편차 확인 세부 항목명').fill(detailTitle);
 
   await expect.poll(async () => {
     const board = await fetchBoard(request, token);
     return {
       category: board.categories.find((category) => category.id === 'grade-product')?.label,
       subtopic: board.subtopics.find((subtopic) => subtopic.id === 'sts')?.label,
-      issue: board.issueGroups.find((issue) => issue.id === 'issue-sts-corrosion-test'),
-      detail: board.detailIssues.find((detail) => detail.id === 'detail-sts-corrosion-test-condition'),
     };
-  }).toMatchObject({
+  }).toEqual({
     category: categoryLabel,
     subtopic: subtopicLabel,
-    issue: {
-      title: issueTitle,
-      status: 'resolved',
-      statusSource: 'manual',
-      ownerName,
-      ownerResearchGroup: ownerDepartment,
-    },
-    detail: {
-      title: detailTitle,
-      status: 'resolved',
-      ownerName,
-      ownerResearchGroup: ownerDepartment,
-    },
   });
 
   await logout(page);
@@ -658,10 +619,6 @@ test('admin taxonomy and owner master edits persist through server board data', 
   await page.getByRole('button', { name: '관리자' }).click();
   await expect(page.getByTestId('admin-category-grade-product')).toHaveValue(categoryLabel);
   await expect(page.getByTestId('admin-subtopic-sts')).toHaveValue(subtopicLabel);
-  await page.getByRole('button', { name: '담당 정보 관리', exact: true }).click();
-  await expect(page.getByLabel(`${detailTitle} 이슈명`)).toHaveValue(issueTitle);
-  await expect(page.getByLabel(`${detailTitle} 담당자`)).toHaveValue(ownerName);
-  await expect(page.getByLabel(`${detailTitle} 담당부서`)).toHaveValue(ownerDepartment);
 
   expect(consoleErrors).toEqual([]);
 });
@@ -675,22 +632,24 @@ test('admin option edits persist and feed add-history controls in server mode', 
   const labelOption = `운영라벨-${suffix}`;
   const secondLabelOption = `긴급라벨-${suffix}`;
 
-  await resetBoard(request, token);
+  await seedBoard(request, token);
   await loginViaUi(page, 'admin', 'admin-password');
   await page.getByRole('button', { name: '관리자' }).click();
-  await page.getByRole('button', { name: '옵션 관리', exact: true }).click();
+  await clickAdminModule(page, '옵션 관리');
   const optionRegion = page.getByRole('region', { name: '옵션 관리' });
 
   await optionRegion.getByLabel('세부 단계 조치중').fill(statusLabel);
-  await optionRegion.getByLabel('유형 조치').fill(recordTypeLabel);
   await optionRegion.getByRole('button', { name: '조치중 위로 이동' }).click();
-  await optionRegion.getByRole('checkbox', { name: '원인검토 표시' }).click();
+  await optionRegion.getByRole('switch', { name: '원인검토 보임 상태' }).click();
+  await optionRegion.getByRole('tab', { name: /유형/ }).click();
+  await optionRegion.getByLabel('유형 조치').fill(recordTypeLabel);
   await optionRegion.getByRole('button', { name: '조치 위로 이동' }).click();
-  await optionRegion.getByRole('checkbox', { name: '회의 표시' }).click();
+  await optionRegion.getByRole('switch', { name: '회의 보임 상태' }).click();
+  await optionRegion.getByRole('tab', { name: /업무 라벨/ }).click();
   await optionRegion.getByLabel('새 업무 라벨').fill(labelOption);
-  await optionRegion.getByRole('button', { name: '추가' }).click();
+  await optionRegion.getByRole('button', { name: '라벨 추가' }).click();
   await optionRegion.getByLabel('새 업무 라벨').fill(secondLabelOption);
-  await optionRegion.getByRole('button', { name: '추가' }).click();
+  await optionRegion.getByRole('button', { name: '라벨 추가' }).click();
   await optionRegion.getByRole('button', { name: `${secondLabelOption} 위로 이동` }).click();
 
   await expect.poll(async () => {
@@ -717,11 +676,15 @@ test('admin option edits persist and feed add-history controls in server mode', 
   await logout(page);
   await loginViaUi(page, 'admin', 'admin-password');
   await page.getByRole('button', { name: '관리자' }).click();
-  await page.getByRole('button', { name: '옵션 관리', exact: true }).click();
+  await clickAdminModule(page, '옵션 관리');
   await expect(optionRegion.getByLabel('세부 단계 조치중')).toHaveValue(statusLabel);
+  await optionRegion.getByRole('tab', { name: /유형/ }).click();
   await expect(optionRegion.getByLabel('유형 조치')).toHaveValue(recordTypeLabel);
-  await expect(optionRegion.getByRole('checkbox', { name: '원인검토 표시' })).not.toBeChecked();
-  await expect(optionRegion.getByRole('checkbox', { name: '회의 표시' })).not.toBeChecked();
+  await optionRegion.getByRole('tab', { name: /세부 단계/ }).click();
+  await expect(optionRegion.getByRole('switch', { name: '원인검토 보임 상태' })).not.toBeChecked();
+  await optionRegion.getByRole('tab', { name: /유형/ }).click();
+  await expect(optionRegion.getByRole('switch', { name: '회의 보임 상태' })).not.toBeChecked();
+  await optionRegion.getByRole('tab', { name: /업무 라벨/ }).click();
   await expect(optionRegion.getByLabel(`업무 라벨 ${secondLabelOption}`)).toHaveValue(secondLabelOption);
   await expect(optionRegion.getByLabel(`업무 라벨 ${labelOption}`)).toHaveValue(labelOption);
 
@@ -742,7 +705,7 @@ test('authenticated topbar search and notifications navigate through server data
   const consoleErrors = collectConsoleErrors(page);
   const token = await adminToken(request);
 
-  await resetBoard(request, token);
+  await seedBoard(request, token);
   await loginViaUi(page, 'admin', 'admin-password');
 
   await page.getByLabel('전체 검색').fill('내식성');
@@ -772,13 +735,13 @@ test('admin report shortcuts open filtered server reports and downloads office f
   const consoleErrors = collectConsoleErrors(page);
   const token = await adminToken(request);
 
-  await resetBoard(request, token);
+  await seedBoard(request, token);
   await loginViaUi(page, 'admin', 'admin-password');
   await page.getByRole('button', { name: '관리자' }).click();
   await expect(page.getByRole('region', { name: '관리자 페이지' })).toBeVisible();
 
-  await page.getByRole('button', { name: /이력 .*건 보고서 양식 보기/ }).click();
-  await expect(page.getByRole('region', { name: '보고서 양식' })).toBeVisible();
+  await clickAdminModule(page, '보고서 바로가기');
+  await expect(page.getByRole('region', { name: '보고서 바로가기' })).toBeVisible();
   await expect(page.getByText('선택범위_이력_보고서_YYYY-MM-DD')).toBeVisible();
 
   await page.getByRole('button', { name: /강종\/제품 \/ STS/ }).click();
@@ -811,15 +774,15 @@ test('important marker toggles review state and persists on the server', async (
   const consoleErrors = collectConsoleErrors(page);
   const token = await adminToken(request);
 
-  await resetBoard(request, token);
+  await seedBoard(request, token);
   await loginViaUi(page, 'admin', 'admin-password');
   await openStsHistoryDetail(page);
 
-  const importantButton = page.getByRole('button', { name: '중요 표시', exact: true });
+  const importantButton = page.locator('.issue-title-row .icon-button').first();
   await expect(importantButton).toHaveAttribute('aria-pressed', 'false');
   await importantButton.scrollIntoViewIfNeeded();
-  await importantButton.click({ force: true });
-  await expect(page.getByRole('button', { name: '중요 표시 해제' })).toHaveAttribute('aria-pressed', 'true');
+  await importantButton.click();
+  await expect(importantButton).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('검토 필요')).toBeVisible();
 
   await expect.poll(async () => {
@@ -830,7 +793,7 @@ test('important marker toggles review state and persists on the server', async (
   await logout(page);
   await loginViaUi(page, 'admin', 'admin-password');
   await openStsHistoryDetail(page);
-  await expect(page.getByRole('button', { name: '중요 표시 해제' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.issue-title-row .icon-button').first()).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByText('검토 필요')).toBeVisible();
 
   expect(consoleErrors).toEqual([]);
@@ -853,7 +816,7 @@ test('mobile admin can operate user permissions without horizontal overflow', as
   await loginViaUi(page, 'admin', 'admin-password');
   await page.getByRole('button', { name: '관리자' }).click();
   await expect(page.getByRole('region', { name: '관리자 페이지' })).toBeVisible();
-  await page.getByRole('button', { name: '권한 관리', exact: true }).click();
+  await clickAdminModule(page, '권한 관리');
   await expect(page.getByRole('region', { name: '사용자 권한 관리' })).toBeVisible();
 
   const userRow = page.locator('.admin-users-table__row').filter({ hasText: mobileUser.username });

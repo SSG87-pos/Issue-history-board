@@ -21,6 +21,15 @@ function readRequired(path) {
   return readFileSync(path, 'utf8');
 }
 
+function readOptional(path) {
+  if (!existsSync(path)) {
+    pass(`${path} is not configured; workflow validation skipped`);
+    return null;
+  }
+  pass(`${path} exists`);
+  return readFileSync(path, 'utf8');
+}
+
 function expectIncludes(name, text, needle) {
   if (text.includes(needle)) {
     pass(`${name} contains ${needle}`);
@@ -42,8 +51,8 @@ const packageJson = readRequired('package.json');
 const viteConfig = readRequired('vite.config.ts');
 const pagesConfig = readRequired('playwright.pages.config.ts');
 const livePagesConfig = readRequired('playwright.live-pages.config.ts');
-const ciWorkflow = readRequired('.github/workflows/ci.yml');
-const pagesWorkflow = readRequired('.github/workflows/pages.yml');
+const ciWorkflow = readOptional('.github/workflows/ci.yml');
+const pagesWorkflow = readOptional('.github/workflows/pages.yml');
 
 for (const service of ['postgres:', 'api:', 'web:']) {
   expectIncludes('docker-compose.yml', compose, service);
@@ -92,18 +101,22 @@ expectIncludes('package.json', packageJson, 'build:pages');
 expectIncludes('package.json', packageJson, 'test:e2e:pages');
 expectIncludes('package.json', packageJson, 'test:e2e:pages:live');
 expectIncludes('package.json', packageJson, 'run-playwright-with-ports.mjs');
-expectIncludes('.github/workflows/ci.yml', ciWorkflow, 'pnpm test:e2e:pages:live');
+if (ciWorkflow) {
+  expectIncludes('.github/workflows/ci.yml', ciWorkflow, 'pnpm test:e2e:pages:live');
+}
 expectIncludes('vite.config.ts', viteConfig, '/Issue-history-board/');
 expectIncludes('playwright.pages.config.ts', pagesConfig, '/Issue-history-board/');
 expectIncludes('playwright.live-pages.config.ts', livePagesConfig, 'LIVE_PAGES_URL');
 expectIncludes('playwright.live-pages.config.ts', livePagesConfig, 'ssg87-pos.github.io/Issue-history-board/');
-expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'pnpm build:pages');
-expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'pnpm exec playwright install --with-deps chromium');
-expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'actions/configure-pages');
-expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'actions/deploy-pages');
-expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'pnpm test:e2e:pages');
-expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'pnpm test:e2e:pages:live:current');
-expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'LIVE_PAGES_URL');
+if (pagesWorkflow) {
+  expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'pnpm build:pages');
+  expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'pnpm exec playwright install --with-deps chromium');
+  expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'actions/configure-pages');
+  expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'actions/deploy-pages');
+  expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'pnpm test:e2e:pages');
+  expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'pnpm test:e2e:pages:live:current');
+  expectIncludes('.github/workflows/pages.yml', pagesWorkflow, 'LIVE_PAGES_URL');
+}
 
 for (const key of ['POSTGRES_PASSWORD=', 'SECRET_KEY=', 'ADMIN_PASSWORD=', 'WEB_PORT=', 'CORS_ORIGINS=']) {
   expectIncludes('.env.example', envExample, key);

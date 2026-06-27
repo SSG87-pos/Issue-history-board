@@ -12,7 +12,7 @@ Use this file with `AGENTS.md`, `DESIGN.md`, `docs/current-ui-decisions.md`, `do
 
 ## Current State
 
-The `main` branch should remain the pre-design-change baseline. The active design work is on `codex/design-readability-refresh`.
+The `main` branch now carries the latest design, report, backend, and agent guardrail work. The active branch `codex/design-readability-refresh` is kept aligned with `main` for continuation convenience.
 
 The latest UI direction is a restrained, light internal operations dashboard:
 
@@ -44,8 +44,8 @@ The most important source of truth for visual decisions is:
 - Added Excel `.xlsx` import/export for app-generated history row files. JSON remains the full backup/restore path; Excel is an operational table-review helper.
 - Added report export filters and Excel/Word download output. The former large report preview rows were removed because they duplicated the actual downloadable report and made the report page too heavy.
 - Expanded fallback seed data so the MVP demo has visible issues across all four top-level categories.
-- Added GitHub Pages demo build support and a Pages preview Playwright smoke test for the `/Issue-history-board/` base path.
-- Added a GitHub Pages Actions workflow that builds, previews, deploys, and live-verifies the `/Issue-history-board/` static demo from `main`.
+- Added GitHub Pages demo build support and Pages preview/live Playwright smoke tests for the `/Issue-history-board/` base path.
+- GitHub Actions workflow files are not committed on `main` yet because the current GitHub push token lacks `workflow` scope. Until that token is refreshed, deploy Pages from `gh-pages` and run the Pages verification commands manually.
 - Added home dashboard, subtopic detail page, history list, issue-group view, detail panel, and add/edit drawer.
 - Reworked the server login screen to follow the reusable `SSG87-pos/poslab-login-page` POSLAB entry format, with `로그인 / 회원가입` tabs and app-specific `PosLAB 이력관리 센터` title copy.
 - Added signup persistence through FastAPI and surfaced submitted signup requests in the admin permission screen. Approval creates an active viewer account using the submitted email and password.
@@ -140,7 +140,7 @@ The preview command builds with `vite --mode github-pages`, serves `dist`, and c
 Live Pages check:
 
 ```text
-https://ssg87-pos.github.io/Issue-history-board/ returns HTTP 200 and renders the fallback demo board without browser console errors. The live HTML currently references `index-B0VKNy4R.js` / `index-SzPiKn5c.css`, while the latest local build produced `index-D-X9jBU9.js` / `index-DqqD1h8a.css`. Run the new Pages workflow from `main`; its final `verify-live` job runs `pnpm test:e2e:pages:live:current` before treating the public demo as current.
+https://ssg87-pos.github.io/Issue-history-board/ returns HTTP 200 and has been manually refreshed from the latest `main` build. Re-run `pnpm test:e2e:pages:live:current` after any new Pages deployment before treating the public demo as current.
 ```
 
 After refreshing `gh-pages`, run:

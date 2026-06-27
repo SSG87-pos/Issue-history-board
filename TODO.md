@@ -4,8 +4,8 @@
 
 - [x] Browser QA: `http://127.0.0.1:5173/`에서 홈, STS 상세, 이력 목록, 이슈별 모음, 이력 추가/수정 drawer를 다시 훑는다.
 - [x] Pages QA: `https://ssg87-pos.github.io/Issue-history-board/`에서 fallback 시연 데이터가 바로 보이는지 확인한다.
-- [x] Pages Deploy QA: `main`에 반영되면 GitHub Pages Actions 워크플로가 `pnpm build:pages`, `pnpm test:e2e:pages`, `actions/deploy-pages`, `pnpm test:e2e:pages:live:current`로 공개 데모를 빌드/검증/배포/최신 asset 확인까지 수행하도록 구성한다.
-- [ ] Pages Latest Deploy QA: 변경사항을 `main`에 병합/푸시해 Pages 워크플로를 실행한 뒤 실제 공개 URL의 asset 해시 일치 job이 통과하는지 확인한다. 현재 공개 Pages는 렌더링은 통과하지만 live asset이 `index-B0VKNy4R.js` / `index-SzPiKn5c.css`라서 로컬 최신 빌드의 `index-D-X9jBU9.js` / `index-DqqD1h8a.css`와 다르다.
+- [ ] Pages Actions QA: GitHub push 토큰에 `workflow` scope를 추가한 뒤 `.github/workflows`를 커밋해 `main` push에서 Pages 빌드/검증/배포/최신 asset 확인까지 자동 실행되도록 한다.
+- [x] Pages Latest Deploy QA: 변경사항을 `main`에 반영하고 `gh-pages`를 최신 빌드로 갱신한 뒤 실제 공개 URL이 새 asset을 가리키는지 확인한다.
 - [x] Pages Preview QA: `vite --mode github-pages` 정적 빌드를 `/Issue-history-board/` base path로 띄웠을 때 fallback 시연 데이터가 보이는지 확인한다.
 - [x] Company Run QA: Node/pnpm 없이 Docker만 있는 Ubuntu 서버에서도 `./scripts/company-run.sh check|up|status|health|logs|backup|down`으로 운영할 수 있게 스크립트와 문서를 연결한다.
 - [x] Design guardrail QA: 새 디자인 수정 전 루트 `DESIGN.md`와 `docs/design-readability-refresh.md`의 `Do Not Revert` 항목을 먼저 확인한다.
