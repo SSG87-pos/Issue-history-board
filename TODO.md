@@ -8,7 +8,8 @@
 - [ ] Pages Latest Deploy QA: 변경사항을 `main`에 병합/푸시해 Pages 워크플로를 실행한 뒤 실제 공개 URL의 asset 해시 일치 job이 통과하는지 확인한다. 현재 공개 Pages는 렌더링은 통과하지만 live asset이 `index-B0VKNy4R.js` / `index-SzPiKn5c.css`라서 로컬 최신 빌드의 `index-D-X9jBU9.js` / `index-DqqD1h8a.css`와 다르다.
 - [x] Pages Preview QA: `vite --mode github-pages` 정적 빌드를 `/Issue-history-board/` base path로 띄웠을 때 fallback 시연 데이터가 보이는지 확인한다.
 - [x] Company Run QA: Node/pnpm 없이 Docker만 있는 Ubuntu 서버에서도 `./scripts/company-run.sh check|up|status|health|logs|backup|down`으로 운영할 수 있게 스크립트와 문서를 연결한다.
-- [x] Design guardrail QA: 새 디자인 수정 전 `docs/design-readability-refresh.md`의 `Do Not Revert` 항목을 먼저 확인한다.
+- [x] Design guardrail QA: 새 디자인 수정 전 루트 `DESIGN.md`와 `docs/design-readability-refresh.md`의 `Do Not Revert` 항목을 먼저 확인한다.
+- [x] Agent Governance QA: 루트 `AGENTS.md`, `src/AGENTS.md`, `backend/AGENTS.md`와 각 `CLAUDE.md` 링크를 만들어 다음 에이전트가 디자인/UX/검증 기준을 먼저 읽도록 한다.
 - [x] Docs QA: 다음 작업 전 `docs/current-ui-decisions.md`, `docs/design-readability-refresh.md`, `docs/research-history-board-summary.md`, `HANDOFF.md`의 역할이 겹치거나 충돌하지 않는지 확인한다.
 - [x] Detail QA: `향후 계획`은 보이고 독립 `다음 확인일` 블록은 없는지 확인한다.
 - [x] Timeline QA: 같은 이슈의 `이력 목록`에서 선택 행 배경, 점, 날짜가 상태색을 따르는지 확인한다.

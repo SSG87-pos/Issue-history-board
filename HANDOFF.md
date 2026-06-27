@@ -8,7 +8,7 @@ Current branch: `codex/design-readability-refresh`
 Remote: `origin` -> `https://github.com/SSG87-pos/Issue-history-board.git`
 Demo URL after `gh-pages` branch deploy: `https://ssg87-pos.github.io/Issue-history-board/`
 
-Use this file with `docs/current-ui-decisions.md`, `docs/design-readability-refresh.md`, `docs/research-history-board-summary.md`, and `TODO.md` when continuing the project in a new chat.
+Use this file with `AGENTS.md`, `DESIGN.md`, `docs/current-ui-decisions.md`, `docs/design-readability-refresh.md`, `docs/research-history-board-summary.md`, and `TODO.md` when continuing the project in a new chat.
 
 ## Current State
 
@@ -33,6 +33,7 @@ The latest UI direction is a restrained, light internal operations dashboard:
 
 The most important source of truth for visual decisions is:
 
+- `DESIGN.md`
 - `docs/current-ui-decisions.md`
 - `docs/design-readability-refresh.md`
 
@@ -170,5 +171,5 @@ Docker CLI is not available on the current Mac environment. Run `./scripts/compa
 ## Next Prompt
 
 ```text
-AGENTS.md, HANDOFF.md, TODO.md, docs/current-ui-decisions.md, docs/design-readability-refresh.md에서 계속 진행에 필요한 부분만 확인하고 Issue board의 `codex/design-readability-refresh` 브랜치 작업을 이어서 진행해줘. main은 디자인 변경 전 기준으로 유지하고, 현재 디자인 브랜치에서는 `docs/design-readability-refresh.md`의 선택 상태/사이드바/상세 패널 원칙을 되돌리지 말아줘. 다음 작업은 TODO.md의 Now 항목부터 처리하고, 소스 변경 후 `pnpm build`와 `pnpm test`를 확인한 뒤 커밋/푸시해줘.
+AGENTS.md, DESIGN.md, HANDOFF.md, TODO.md, docs/current-ui-decisions.md, docs/design-readability-refresh.md에서 계속 진행에 필요한 부분만 확인하고 Issue board 작업을 이어서 진행해줘. DESIGN.md의 디자인 시스템 원칙과 docs/current-ui-decisions.md의 제품/UX 결정을 되돌리지 말아줘. 다음 작업은 TODO.md의 Now 항목부터 처리하고, 소스 변경 후 `pnpm build`와 `pnpm test`를 확인한 뒤 커밋/푸시해줘.
 ```
