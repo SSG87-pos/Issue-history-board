@@ -1,12 +1,11 @@
 import {
   PHASE_LABELS,
-  STATUS_PHASES,
   type HistoryEntry,
   type IssueBoardData,
   type IssueGroup,
 } from './types';
 import { LONG_RUNNING_DELAY_DAYS } from './selectors';
-import { getRecordTypeLabels, getStatusLabels } from './options';
+import { getRecordTypeLabels, getStatusLabels, getStatusPhase } from './options';
 import { exportBoardDataAsXlsx } from './xlsxExchange';
 
 export type ReportTemplate = 'history' | 'weekly' | 'issue_summary' | 'delayed';
@@ -58,7 +57,7 @@ export function filterReportData(data: IssueBoardData, filters: ReportFilters): 
     if (filters.detailIssueId && detail.id !== filters.detailIssueId) return false;
     if (filters.dateFrom && entry.date < filters.dateFrom) return false;
     if (filters.dateTo && entry.date > filters.dateTo) return false;
-    if (filters.template === 'delayed' && !isLongRunningIssue(issue)) return false;
+    if (filters.template === 'delayed' && !isLongRunningIssue(data, issue)) return false;
     return true;
   });
 
@@ -207,8 +206,8 @@ function getFilterText(filters: ReportFilters): string {
   return parts.length > 0 ? `선택 조건: ${parts.join(', ')}` : '선택 조건: 전체';
 }
 
-function isLongRunningIssue(issue: IssueGroup): boolean {
-  if (STATUS_PHASES[issue.status] === 'closed') return false;
+function isLongRunningIssue(data: Pick<IssueBoardData, 'settings'>, issue: IssueGroup): boolean {
+  if (getStatusPhase(data, issue.status) === 'closed') return false;
   const startedAt = new Date(`${issue.firstOccurredAt}T00:00:00+09:00`).getTime();
   const elapsedDays = Math.max(1, Math.ceil((Date.now() - startedAt) / 86_400_000));
   return elapsedDays >= LONG_RUNNING_DELAY_DAYS;

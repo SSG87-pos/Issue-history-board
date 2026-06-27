@@ -1,11 +1,11 @@
 import { Star } from 'lucide-react';
-import { getRecordTypeLabels, getStatusLabels } from '../domain/options';
+import { getRecordTypeLabels, getStatusLabels, getStatusPhase } from '../domain/options';
 import {
   getGroupedTimeline,
   getHistoryEntriesForDetailIssue,
 } from '../domain/selectors';
 import type { HistoryEntry, IssueBoardData, IssueGroup } from '../domain/types';
-import { PHASE_LABELS, STATUS_PHASES } from '../domain/types';
+import { PHASE_LABELS } from '../domain/types';
 
 type HistoryDetailProps = {
   data: IssueBoardData;
@@ -42,14 +42,14 @@ export function HistoryDetail({
   const detailIssue = data.detailIssues.find((issue) => issue.id === selectedEntry.detailIssueId);
   const sameIssueEntries = getHistoryEntriesForDetailIssue(data, selectedEntry.detailIssueId).slice().reverse();
   const groupedTimeline = getGroupedTimeline(data, selectedIssue.id);
-  const phase = STATUS_PHASES[selectedIssue.status];
+  const phase = getStatusPhase(data, selectedIssue.status);
   const ownerName = detailIssue?.ownerName ?? selectedIssue.ownerName ?? selectedEntry.authorName ?? '-';
   const ownerDepartment = detailIssue?.ownerResearchGroup ?? selectedIssue.ownerResearchGroup ?? getFallbackResearchGroup(selectedIssue.categoryId);
   const relatedDepartment = detailIssue?.relatedDepartment ?? selectedIssue.relatedDepartment ?? getFallbackDepartment(selectedIssue.categoryId);
   const priorityLabel = detailIssue?.priorityLabel ?? selectedIssue.priorityLabel ?? '보통';
   const detailLines = toReadableLines(selectedEntry.details);
   const referenceLinks = selectedEntry.referenceLinks.length ? selectedEntry.referenceLinks : [];
-  const entryPhase = STATUS_PHASES[selectedEntry.status];
+  const entryPhase = getStatusPhase(data, selectedEntry.status);
   const statusLabels = getStatusLabels(data);
   const recordTypeLabels = getRecordTypeLabels(data);
   const recordTypeLabel = selectedEntry.recordType ? recordTypeLabels[selectedEntry.recordType] : '일반';

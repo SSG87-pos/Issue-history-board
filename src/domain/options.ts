@@ -13,11 +13,19 @@ const ALL_STATUSES = Object.keys(STATUS_LABELS) as IssueStatus[];
 const ALL_RECORD_TYPES = Object.keys(RECORD_TYPE_LABELS) as IssueRecordType[];
 
 export function getStatusLabels(data?: Pick<IssueBoardData, 'settings'>): Record<IssueStatus, string> {
-  return { ...STATUS_LABELS, ...compactLabels(data?.settings?.statusLabels) };
+  return {
+    ...STATUS_LABELS,
+    ...Object.fromEntries(getCustomStatuses(data).map((status) => [status.id, status.label])),
+    ...compactLabels(data?.settings?.statusLabels),
+  } as Record<IssueStatus, string>;
 }
 
 export function getRecordTypeLabels(data?: Pick<IssueBoardData, 'settings'>): Record<IssueRecordType, string> {
-  return { ...RECORD_TYPE_LABELS, ...compactLabels(data?.settings?.recordTypeLabels) };
+  return {
+    ...RECORD_TYPE_LABELS,
+    ...Object.fromEntries(getCustomRecordTypes(data).map((type) => [type.id, type.label])),
+    ...compactLabels(data?.settings?.recordTypeLabels),
+  } as Record<IssueRecordType, string>;
 }
 
 export function getStatusLabel(data: Pick<IssueBoardData, 'settings'> | undefined, status: IssueStatus): string {
@@ -29,7 +37,7 @@ export function getRecordTypeLabel(data: Pick<IssueBoardData, 'settings'> | unde
 }
 
 export function getOrderedStatuses(data?: Pick<IssueBoardData, 'settings'>): IssueStatus[] {
-  return orderedValues(ALL_STATUSES, data?.settings?.statusOrder);
+  return orderedValues([...ALL_STATUSES, ...getCustomStatuses(data).map((status) => status.id)], data?.settings?.statusOrder);
 }
 
 export function getStatusOptionsForPhase(
@@ -37,27 +45,60 @@ export function getStatusOptionsForPhase(
   phase: IssuePhase,
   includeStatus?: IssueStatus,
 ): IssueStatus[] {
-  const hidden = new Set(validValues(ALL_STATUSES, data?.settings?.hiddenStatuses));
-  const ordered = getOrderedStatuses(data).filter((status) => STATUS_PHASES[status] === phase);
+  const allowedStatuses = getOrderedStatuses(data);
+  const hidden = new Set(validValues(allowedStatuses, data?.settings?.hiddenStatuses));
+  const ordered = getOrderedStatuses(data).filter((status) => getStatusPhase(data, status) === phase);
   const visible = ordered.filter((status) => !hidden.has(status));
-  if (includeStatus && STATUS_PHASES[includeStatus] === phase && !visible.includes(includeStatus)) {
+  if (includeStatus && getStatusPhase(data, includeStatus) === phase && !visible.includes(includeStatus)) {
     visible.push(includeStatus);
   }
   return visible.length > 0 ? visible : PHASE_STATUS_OPTIONS[phase];
 }
 
 export function getOrderedRecordTypes(data?: Pick<IssueBoardData, 'settings'>): IssueRecordType[] {
-  return orderedValues(ALL_RECORD_TYPES, data?.settings?.recordTypeOrder);
+  return orderedValues([...ALL_RECORD_TYPES, ...getCustomRecordTypes(data).map((type) => type.id)], data?.settings?.recordTypeOrder);
 }
 
 export function getRecordTypeOptions(
   data?: Pick<IssueBoardData, 'settings'>,
   includeRecordType?: IssueRecordType,
 ): IssueRecordType[] {
-  const hidden = new Set(validValues(ALL_RECORD_TYPES, data?.settings?.hiddenRecordTypes));
+  const allowedRecordTypes = getOrderedRecordTypes(data);
+  const hidden = new Set(validValues(allowedRecordTypes, data?.settings?.hiddenRecordTypes));
   const visible = getOrderedRecordTypes(data).filter((recordType) => !hidden.has(recordType));
   if (includeRecordType && !visible.includes(includeRecordType)) visible.push(includeRecordType);
   return visible.length > 0 ? visible : ALL_RECORD_TYPES;
+}
+
+export function getCustomStatuses(data?: Pick<IssueBoardData, 'settings'>) {
+  const seen = new Set<string>();
+  return (data?.settings?.customStatuses ?? [])
+    .map((status) => ({
+      ...status,
+      label: status.label.trim(),
+      phase: status.phase,
+    }))
+    .filter((status) => {
+      if (!status.label || seen.has(status.id)) return false;
+      seen.add(status.id);
+      return true;
+    });
+}
+
+export function getCustomRecordTypes(data?: Pick<IssueBoardData, 'settings'>) {
+  const seen = new Set<string>();
+  return (data?.settings?.customRecordTypes ?? [])
+    .map((type) => ({ ...type, label: type.label.trim() }))
+    .filter((type) => {
+      if (!type.label || seen.has(type.id)) return false;
+      seen.add(type.id);
+      return true;
+    });
+}
+
+export function getStatusPhase(data: Pick<IssueBoardData, 'settings'> | undefined, status: IssueStatus): IssuePhase {
+  if (status in STATUS_PHASES) return STATUS_PHASES[status as keyof typeof STATUS_PHASES];
+  return getCustomStatuses(data).find((item) => item.id === status)?.phase ?? 'in_progress';
 }
 
 export function getIssueLabelOptions(data: IssueBoardData): string[] {

@@ -3,7 +3,6 @@ import {
   PHASE_LABELS,
   RECORD_TYPE_LABELS,
   STATUS_LABELS,
-  STATUS_PHASES,
   type Category,
   type DetailIssue,
   type HistoryEntry,
@@ -13,7 +12,7 @@ import {
   type IssueStatus,
   type Subtopic,
 } from './types';
-import { getRecordTypeLabels, getStatusLabels } from './options';
+import { getRecordTypeLabels, getStatusLabels, getStatusPhase } from './options';
 
 const EXCEL_COLUMNS = [
   '대분류',
@@ -71,7 +70,7 @@ function boardDataToRows(data: IssueBoardData): string[][] {
       const detail = data.detailIssues.find((item) => item.id === entry.detailIssueId);
       const category = data.categories.find((item) => item.id === issue?.categoryId);
       const subtopic = data.subtopics.find((item) => item.id === issue?.subtopicId);
-      const phase = STATUS_PHASES[entry.status];
+      const phase = getStatusPhase(data, entry.status);
 
       return EXCEL_COLUMNS.map((column) =>
         ({
@@ -114,9 +113,11 @@ function importRows(current: IssueBoardData, rows: SheetRow[]): IssueBoardData {
           statusLabels: current.settings.statusLabels ? { ...current.settings.statusLabels } : undefined,
           statusOrder: current.settings.statusOrder ? [...current.settings.statusOrder] : undefined,
           hiddenStatuses: current.settings.hiddenStatuses ? [...current.settings.hiddenStatuses] : undefined,
+          customStatuses: current.settings.customStatuses ? current.settings.customStatuses.map((item) => ({ ...item })) : undefined,
           recordTypeLabels: current.settings.recordTypeLabels ? { ...current.settings.recordTypeLabels } : undefined,
           recordTypeOrder: current.settings.recordTypeOrder ? [...current.settings.recordTypeOrder] : undefined,
           hiddenRecordTypes: current.settings.hiddenRecordTypes ? [...current.settings.hiddenRecordTypes] : undefined,
+          customRecordTypes: current.settings.customRecordTypes ? current.settings.customRecordTypes.map((item) => ({ ...item })) : undefined,
         }
       : undefined,
   };

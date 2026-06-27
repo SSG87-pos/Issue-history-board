@@ -1,9 +1,9 @@
 import { X } from 'lucide-react';
 import { type KeyboardEvent, useMemo, useState } from 'react';
-import { getIssueLabelOptions, getRecordTypeLabels, getRecordTypeOptions, getStatusLabels, getStatusOptionsForPhase } from '../domain/options';
+import { getIssueLabelOptions, getRecordTypeLabels, getRecordTypeOptions, getStatusLabels, getStatusOptionsForPhase, getStatusPhase } from '../domain/options';
 import { getDetailIssuesForGroup, getRecommendedIssueGroups } from '../domain/selectors';
 import type { Category, DetailIssue, HistoryEntry, IssueBoardData, IssueGroup, IssuePhase, IssueRecordType, IssueStatus, Subtopic } from '../domain/types';
-import { DEFAULT_STATUS_BY_PHASE, PHASE_LABELS, PHASE_STATUS_OPTIONS, STATUS_PHASES } from '../domain/types';
+import { DEFAULT_STATUS_BY_PHASE, PHASE_LABELS } from '../domain/types';
 
 const CATEGORY_ICON_OPTIONS = ['📌', '🧵', '📁', '🧪', '🤝', '🏭', '🔬', '⚙️', '🛠️', '📊', '🔒', '💡', '🧭', '🧾'];
 
@@ -131,7 +131,7 @@ export function AddHistoryPanel({
     !useNewDetailIssue && selectedDetailIssueId ? data.detailIssues.find((detailIssue) => detailIssue.id === selectedDetailIssueId) : undefined;
   const [date, setDate] = useState(() => editingEntry?.date ?? new Date().toISOString().slice(0, 10));
   const initialStatus = editingEntry?.status ?? 'actioning';
-  const [phase, setPhase] = useState<IssuePhase>(STATUS_PHASES[initialStatus]);
+  const [phase, setPhase] = useState<IssuePhase>(getStatusPhase(data, initialStatus));
   const [status, setStatus] = useState<IssueStatus>(initialStatus);
   const [recordType, setRecordType] = useState<IssueRecordType | undefined>(editingEntry ? editingEntry.recordType : 'action');
   const [changesStatus, setChangesStatus] = useState(editingEntry?.changesDetailIssueStatus ?? false);
@@ -156,7 +156,7 @@ export function AddHistoryPanel({
   function selectPhase(nextPhase: IssuePhase) {
     const nextStatusOptions = getStatusOptionsForPhase(data, nextPhase);
     setPhase(nextPhase);
-    if (!PHASE_STATUS_OPTIONS[nextPhase].includes(status)) {
+    if (getStatusPhase(data, status) !== nextPhase) {
       setStatus(nextStatusOptions[0] ?? DEFAULT_STATUS_BY_PHASE[nextPhase]);
     }
   }

@@ -1,6 +1,7 @@
 import { type CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import { getStatusPhase } from '../domain/options';
 import type { Category, HistoryEntry, IssueBoardData, IssueGroup, IssuePhase, Subtopic } from '../domain/types';
-import { PHASE_LABELS, STATUS_PHASES } from '../domain/types';
+import { PHASE_LABELS } from '../domain/types';
 import { LONG_RUNNING_DELAY_DAYS } from '../domain/selectors';
 import { HistoryDetail } from './HistoryDetail';
 import { HistoryList } from './HistoryList';
@@ -50,19 +51,19 @@ export function SubtopicDetailPage({
     () =>
       issues.reduce(
         (counts, issue) => {
-          counts[STATUS_PHASES[issue.status]] += 1;
+          counts[getStatusPhase(data, issue.status)] += 1;
           return counts;
         },
         { received: 0, in_progress: 0, closed: 0 } as Record<IssuePhase, number>,
       ),
-    [issues],
+    [data, issues],
   );
   const issueTotal = issues.length;
   const delayedIssues = useMemo(() => {
     const nowTime = Date.now();
     return issues.filter(
       (issue) =>
-        STATUS_PHASES[issue.status] !== 'closed' &&
+        getStatusPhase(data, issue.status) !== 'closed' &&
         getElapsedDays(issue.firstOccurredAt, nowTime) >= LONG_RUNNING_DELAY_DAYS,
     );
   }, [issues]);
@@ -73,8 +74,8 @@ export function SubtopicDetailPage({
     if (dashboardFilter === 'all') return issues;
     if (dashboardFilter === 'delayed') return delayedIssues;
     if (dashboardFilter === 'recent') return issues.filter((issue) => issue.latestUpdatedAt >= recentCutoff);
-    return issues.filter((issue) => STATUS_PHASES[issue.status] === dashboardFilter);
-  }, [dashboardFilter, delayedIssues, issues, recentCutoff]);
+    return issues.filter((issue) => getStatusPhase(data, issue.status) === dashboardFilter);
+  }, [dashboardFilter, data, delayedIssues, issues, recentCutoff]);
   const visibleIssueIds = useMemo(() => new Set(visibleIssues.map((issue) => issue.id)), [visibleIssues]);
   const visibleEntries = useMemo(() => entries.filter((entry) => visibleIssueIds.has(entry.issueGroupId)), [entries, visibleIssueIds]);
   const selectedEntry = visibleEntries.find((entry) => entry.id === selectedEntryId) ?? visibleEntries[0];

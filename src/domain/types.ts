@@ -1,6 +1,8 @@
-export type IssueStatus = 'occurred' | 'cause_review' | 'actioning' | 'verification' | 'resolved' | 'on_hold';
+export type BuiltInIssueStatus = 'occurred' | 'cause_review' | 'actioning' | 'verification' | 'resolved' | 'on_hold';
+export type CustomIssueStatus = `custom-status-${string}`;
+export type IssueStatus = BuiltInIssueStatus | CustomIssueStatus;
 
-export const STATUS_LABELS: Record<IssueStatus, string> = {
+export const STATUS_LABELS: Record<BuiltInIssueStatus, string> = {
   occurred: '발생',
   cause_review: '원인검토',
   actioning: '조치중',
@@ -17,7 +19,7 @@ export const PHASE_LABELS: Record<IssuePhase, string> = {
   closed: '종료',
 };
 
-export const STATUS_PHASES: Record<IssueStatus, IssuePhase> = {
+export const STATUS_PHASES: Record<BuiltInIssueStatus, IssuePhase> = {
   occurred: 'received',
   cause_review: 'in_progress',
   actioning: 'in_progress',
@@ -26,21 +28,23 @@ export const STATUS_PHASES: Record<IssueStatus, IssuePhase> = {
   on_hold: 'in_progress',
 };
 
-export const PHASE_STATUS_OPTIONS: Record<IssuePhase, IssueStatus[]> = {
+export const PHASE_STATUS_OPTIONS: Record<IssuePhase, BuiltInIssueStatus[]> = {
   received: ['occurred'],
   in_progress: ['cause_review', 'actioning', 'verification', 'on_hold'],
   closed: ['resolved'],
 };
 
-export const DEFAULT_STATUS_BY_PHASE: Record<IssuePhase, IssueStatus> = {
+export const DEFAULT_STATUS_BY_PHASE: Record<IssuePhase, BuiltInIssueStatus> = {
   received: 'occurred',
   in_progress: 'cause_review',
   closed: 'resolved',
 };
 
-export type IssueRecordType = 'meeting' | 'test' | 'analysis' | 'report' | 'action' | 'approval' | 'customer' | 'other';
+export type BuiltInIssueRecordType = 'meeting' | 'test' | 'analysis' | 'report' | 'action' | 'approval' | 'customer' | 'other';
+export type CustomIssueRecordType = `custom-record-${string}`;
+export type IssueRecordType = BuiltInIssueRecordType | CustomIssueRecordType;
 
-export const RECORD_TYPE_LABELS: Record<IssueRecordType, string> = {
+export const RECORD_TYPE_LABELS: Record<BuiltInIssueRecordType, string> = {
   meeting: '회의',
   test: '시험',
   analysis: '분석',
@@ -151,4 +155,17 @@ export type IssueBoardSettings = {
   recordTypeOrder?: IssueRecordType[];
   hiddenRecordTypes?: IssueRecordType[];
   labelOptions?: string[];
+  customStatuses?: CustomStatusOption[];
+  customRecordTypes?: CustomRecordTypeOption[];
+};
+
+export type CustomStatusOption = {
+  id: CustomIssueStatus;
+  label: string;
+  phase: IssuePhase;
+};
+
+export type CustomRecordTypeOption = {
+  id: CustomIssueRecordType;
+  label: string;
 };

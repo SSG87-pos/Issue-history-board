@@ -1,8 +1,8 @@
 import { Search } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
-import { getRecordTypeLabels } from '../domain/options';
+import { getRecordTypeLabels, getStatusPhase } from '../domain/options';
 import type { DetailIssue, HistoryEntry, IssueBoardData, IssueGroup } from '../domain/types';
-import { PHASE_LABELS, STATUS_PHASES } from '../domain/types';
+import { PHASE_LABELS } from '../domain/types';
 
 const PAGE_SIZE = 10;
 
@@ -212,6 +212,7 @@ export function HistoryList({
           <div className="history-list">
             {visibleEntries.map((entry) => {
               const issue = issueById.get(entry.issueGroupId);
+              const entryPhase = getStatusPhase(data, entry.status);
               return (
                 <button
                   className={`history-row ${selectedEntryId === entry.id ? 'is-selected' : ''}`}
@@ -223,8 +224,8 @@ export function HistoryList({
                     <time>{entry.date}</time>
                     {issue && <span className="issue-chip">{issue.groupLabel}</span>}
                     {entry.recordType && <span className="record-type-chip">{recordTypeLabels[entry.recordType]}</span>}
-                    <span className={`status-dot-label phase-${STATUS_PHASES[entry.status]}`}>
-                      {PHASE_LABELS[STATUS_PHASES[entry.status]]}
+                    <span className={`status-dot-label phase-${entryPhase}`}>
+                      {PHASE_LABELS[entryPhase]}
                     </span>
                   </div>
                   <strong>{entry.summary}</strong>
@@ -258,6 +259,7 @@ export function HistoryList({
           {filteredIssues.map(({ issue, issueEntries }) => {
             const latestEntry = issueEntries[0];
             const isSelected = issueEntries.some((entry) => entry.id === selectedEntryId);
+            const issuePhase = getStatusPhase(data, issue.status);
             return (
               <button
                 className={`issue-group-row ${isSelected ? 'is-selected' : ''}`}
@@ -270,8 +272,8 @@ export function HistoryList({
               >
                 <div className="row-meta">
                   <span className="issue-chip">{issue.groupLabel}</span>
-                  <span className={`status-dot-label phase-${STATUS_PHASES[issue.status]}`}>
-                    {PHASE_LABELS[STATUS_PHASES[issue.status]]}
+                  <span className={`status-dot-label phase-${issuePhase}`}>
+                    {PHASE_LABELS[issuePhase]}
                   </span>
                   <small>{issueEntries.length}건</small>
                 </div>
