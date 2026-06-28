@@ -87,10 +87,10 @@ GitHub Pages는 `gh-pages` 브랜치 배포 기준으로 운영한다. `/Issue-h
 7. 비밀번호를 잊은 사용자는 새 비밀번호를 입력하고 `재설정`을 누른다.
 8. 서버 DB가 비어 있으면 빈 보드로 시작한다. 운영 데이터는 관리자 `분류 관리`에서 대분류와 하위 주제를 추가하거나, 기존 JSON 백업을 가져와 채운다.
 9. 마지막 활성 관리자 계정은 비활성화하거나 권한을 낮출 수 없도록 API에서 차단한다.
-10. 관리자 `분류 관리`에서 대분류와 하위 주제명을 수정한다.
-11. 관리자 `데이터 관리`에서 JSON/Excel 내보내기와 가져오기를 확인한다.
-12. 관리자 `담당 정보 관리`에서 이슈명, 업무 라벨, 세부 항목명, 대표 단계, 담당자, 담당부서, 유관부서를 수정한다.
-13. 관리자 `옵션 관리`에서 세부 단계/유형 표시명, 후보 순서/숨김, 새 이슈 업무 라벨 후보의 추가, 삭제, 순서를 관리한다.
+10. 관리자 `분류 관리`에서 대분류와 하위 주제를 추가하거나 표시명을 수정한다.
+11. 관리자 `옵션 관리`에서 세부 단계/유형 표시명, 후보 순서/숨김, 업무 라벨 후보의 추가, 삭제, 순서를 관리한다.
+12. 관리자 `권한 관리`에서 사용자 역할, 활성 상태, 비밀번호 재설정을 관리한다.
+13. 관리자 `보고서 바로가기`에서 필요한 범위의 보고서 화면으로 이동해 다운로드 흐름을 확인한다.
 
 역할 기준:
 
@@ -160,7 +160,7 @@ pnpm test:backend
 pnpm test:e2e:server
 ```
 
-`pnpm test:e2e`는 브라우저에서 관리자 카드, 보고서 필터와 보고서 양식, 모바일 관리자 화면, Excel/Word 다운로드 파일 내용, JSON/Excel 데이터 내보내기, 관리자 옵션 표시명이 반영된 Excel 가져오기, JSON 데이터 가져오기 반영을 확인한다. `pnpm test:e2e:pages`는 GitHub Pages용 `/Issue-history-board/` base path 정적 빌드에서 fallback 시연 데이터가 데스크톱/모바일 모두에 표시되는지 확인한다. `pnpm test:e2e:pages:live`는 공개 GitHub Pages URL이 실제로 fallback 시연 데이터를 렌더링하는지 확인한다. 배포 직후 최신 로컬 `build:pages` asset까지 일치시켜야 하면 `pnpm test:e2e:pages:live:current`를 실행한다. `backend.tests.test_api`는 임시 SQLite DB로 FastAPI 앱을 띄워 로그인, 회원가입 접수/관리자 조회/승인 후 계정 생성, 역할별 접근 제어, 보드 저장/조회, 관리자 사용자 생성/수정을 실제 HTTP 요청으로 확인한다. `pnpm test:e2e:server`는 FastAPI와 Vite를 함께 띄운 뒤 데스크톱/모바일 브라우저에서 POSLAB 형식 로그인/회원가입 탭, 관리자/편집자/조회자 로그인, 권한별 메뉴 노출, 관리자 UI 사용자 생성, 회원가입 신청 목록 확인/승인/승인 계정 로그인, 관리자 분류/이슈명/업무 라벨/세부 항목/대표 단계/담당 정보 저장 후 재접속 유지, 관리자 옵션 표시명/순서/숨김 저장 후 이력 추가 화면 반영, 모바일 권한 변경/비밀번호 재설정/재로그인을 확인한다. 운영 실행은 `docker compose`의 PostgreSQL을 사용한다.
+`pnpm test:e2e`는 브라우저에서 관리자 카드, 보고서 필터와 보고서 양식, 모바일 관리자 화면, Excel/Word 다운로드 파일 내용, JSON/Excel 데이터 내보내기, 관리자 옵션 표시명이 반영된 Excel 가져오기, JSON 데이터 가져오기 반영을 확인한다. `pnpm test:e2e:pages`는 GitHub Pages용 `/Issue-history-board/` base path 정적 빌드에서 fallback 시연 데이터가 데스크톱/모바일 모두에 표시되는지 확인한다. `pnpm test:e2e:pages:live`는 공개 GitHub Pages URL이 실제로 fallback 시연 데이터를 렌더링하는지 확인한다. 배포 직후 최신 로컬 `build:pages` asset까지 일치시켜야 하면 `pnpm test:e2e:pages:live:current`를 실행한다. `backend.tests.test_api`는 임시 SQLite DB로 FastAPI 앱을 띄워 로그인, 회원가입 접수/관리자 조회/승인 후 계정 생성, 역할별 접근 제어, 보드 저장/조회, 관리자 사용자 생성/수정을 실제 HTTP 요청으로 확인한다. `pnpm test:e2e:server`는 FastAPI와 Vite를 함께 띄운 뒤 데스크톱/모바일 브라우저에서 POSLAB 형식 로그인/회원가입 탭, 관리자/편집자/조회자 로그인, 권한별 메뉴 노출, 사용자 생성, 회원가입 신청 목록 확인/승인/승인 계정 로그인, 분류 관리 저장 후 재접속 유지, 옵션 표시명/순서/숨김 저장 후 이력 추가 화면 반영, 보고서 바로가기/다운로드, 모바일 권한 변경/비밀번호 재설정/재로그인을 확인한다. 운영 실행은 `docker compose`의 PostgreSQL을 사용한다.
 
 로컬 E2E 스크립트는 `scripts/run-playwright-with-ports.mjs`를 통해 빈 loopback 포트를 자동 선택한다. OS 임시 포트 할당이 가능한 환경에서는 그 값을 우선 쓰고, 제한된 환경에서는 `42000-60999` 범위에서 재시도한다. 병렬 Codex 스레드나 다른 개발 서버와 충돌하면 `E2E_WEB_PORT`, `E2E_PAGES_PORT`, `E2E_SERVER_API_PORT`, `E2E_SERVER_WEB_PORT`로 명시 포트를 지정한다.
 

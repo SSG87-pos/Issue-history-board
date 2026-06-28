@@ -26,7 +26,7 @@ http://<server-ip>:8080
 
 - 로그인 및 역할 권한: `viewer`, `editor`, `admin`
 - 관리자 사용자 추가, 권한 변경, 비밀번호 재설정, 비활성화
-- 대분류, 하위 주제, 이슈명, 업무 라벨, 세부 항목명, 대표 단계, 담당 정보 관리
+- 대분류/하위 주제 분류 관리와 세부 단계/유형/업무 라벨 옵션 관리
 - 세부 단계/유형 표시명, 후보 순서/숨김, 업무 라벨 후보 추가/삭제/정렬, 이력 추가/상세/보고서/Excel 반영
 - 날짜별 이력 추가, 수정, 삭제
 - 처리 지연 이슈, 최근 갱신, 검색, 알림 바로가기
@@ -76,4 +76,4 @@ pnpm check:deployment -- --with-docker
 Docker 권한을 잡기 전 `.env` 값만 먼저 확인하려면 `./scripts/company-run.sh env-check`를 실행합니다.
 
 GitHub Pages 배포 직후에는 `pnpm test:e2e:pages:live:current`로 공개 URL이 최신 로컬 `build:pages` asset을 서빙하는지 확인합니다.
-`main` 브랜치에 반영되면 GitHub Pages Actions 워크플로가 `/Issue-history-board/` 정적 데모를 빌드, 검증, 배포하고 공개 URL이 최신 asset을 서빙하는지 다시 확인합니다.
+GitHub Actions 기반 Pages 자동화는 현재 push 토큰에 `workflow` scope가 없어 보류되어 있습니다. 토큰 권한을 갱신한 뒤 workflow 파일을 추가하면 자동 배포로 전환할 수 있습니다.
